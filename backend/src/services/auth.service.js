@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const prisma = require('../config/prisma');
 const AppError = require('../utils/AppError');
+const env = require('../config/env');
 const { validatePasswordComplexity } = require('../utils/password');
 const otpService = require('./otp.service');
 const emailService = require('./email.service');
@@ -55,9 +56,14 @@ const register = async (data) => {
 
   await emailService.sendOtpEmail(email, otpCode, 'REGISTER');
 
+  console.log(`\n======================================================`);
+  console.log(`[AUTH SERVICE OTP] Email: ${email} | Code: ${otpCode} | Purpose: REGISTER`);
+  console.log(`======================================================\n`);
+
   return {
     email,
     message: 'Verification OTP sent to your email address.',
+    devOtp: env.NODE_ENV === 'development' ? otpCode : undefined,
   };
 };
 
@@ -124,6 +130,8 @@ const verifyRegisterOtp = async ({ email, otp }) => {
  * Resend OTP code for REGISTER or RESET_PASSWORD
  */
 const resendOtp = async ({ email, purpose }) => {
+  let dispatchedCode = null;
+
   if (purpose === 'REGISTER') {
     // Check if there is an unconsumed registration payload
     const existingOtp = await prisma.otpToken.findFirst({
@@ -142,6 +150,7 @@ const resendOtp = async ({ email, purpose }) => {
     });
 
     await emailService.sendOtpEmail(email, newCode, 'REGISTER');
+    dispatchedCode = newCode;
   } else if (purpose === 'RESET_PASSWORD') {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
@@ -154,9 +163,17 @@ const resendOtp = async ({ email, purpose }) => {
     });
 
     await emailService.sendOtpEmail(email, newCode, 'RESET_PASSWORD');
+    dispatchedCode = newCode;
   }
 
-  return { message: 'A new OTP code has been sent to your email.' };
+  console.log(`\n======================================================`);
+  console.log(`[AUTH SERVICE OTP RESEND] Email: ${email} | Code: ${dispatchedCode} | Purpose: ${purpose}`);
+  console.log(`======================================================\n`);
+
+  return {
+    message: 'A new OTP code has been sent to your email.',
+    devOtp: env.NODE_ENV === 'development' ? dispatchedCode : undefined,
+  };
 };
 
 /**
@@ -222,7 +239,14 @@ const forgotPassword = async ({ email }) => {
 
   await emailService.sendOtpEmail(email, otpCode, 'RESET_PASSWORD');
 
-  return { message: 'Password reset OTP has been dispatched to your email.' };
+  console.log(`\n======================================================`);
+  console.log(`[AUTH SERVICE OTP] Email: ${email} | Code: ${otpCode} | Purpose: RESET_PASSWORD`);
+  console.log(`======================================================\n`);
+
+  return {
+    message: 'Password reset OTP has been dispatched to your email.',
+    devOtp: env.NODE_ENV === 'development' ? otpCode : undefined,
+  };
 };
 
 /**

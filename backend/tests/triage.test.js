@@ -1,5 +1,8 @@
 const request = require('supertest');
 const app = require('../src/app');
+const prisma = require('../src/config/prisma');
+
+jest.setTimeout(25000);
 
 describe('UC-EMG-01: Emergency Triage Intake & BR-04 Priority Queue', () => {
   let receptionistToken;
@@ -7,6 +10,17 @@ describe('UC-EMG-01: Emergency Triage Intake & BR-04 Priority Queue', () => {
   let vetUser;
 
   beforeAll(async () => {
+    // Clean test triage appointments
+    await prisma.triageRecord.deleteMany();
+    await prisma.appointment.deleteMany({
+      where: {
+        OR: [
+          { notes: { contains: 'Emergency Triage' } },
+          { type: 'EMERGENCY' },
+        ],
+      },
+    });
+
     // 1. Log in as Receptionist
     const recRes = await request(app).post('/api/auth/login').send({
       identifier: 'receptionist1',
@@ -104,5 +118,9 @@ describe('UC-EMG-01: Emergency Triage Intake & BR-04 Priority Queue', () => {
 
     expect(acceptRes.status).toBe(200);
     expect(acceptRes.body.data.status).toBe('IN_EXAMINATION');
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 });

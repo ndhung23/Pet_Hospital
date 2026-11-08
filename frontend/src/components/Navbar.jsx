@@ -42,8 +42,8 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Brand */}
-          <div className="flex items-center space-x-8">
-            <Link to={dashboardRoute} className="flex items-center space-x-2.5">
+          <div className="flex items-center space-x-6">
+            <Link to="/" className="flex items-center space-x-2.5">
               <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shadow-blue-200">
                 <HeartPulse className="w-5 h-5" />
               </div>
@@ -57,20 +57,25 @@ const Navbar = () => {
               </div>
             </Link>
 
-            {user && (
-              <div className="hidden md:flex items-center space-x-2">
-                <Link to={dashboardRoute} className={navItemClass(dashboardRoute)}>
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
-                {role === 'PET_OWNER' && (
-                  <Link to="/ai-advisor" className={navItemClass('/ai-advisor')}>
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span>AI Health Guide</span>
+            <div className="hidden md:flex items-center space-x-2">
+              <Link to="/" className={navItemClass('/')}>
+                <span>Home</span>
+              </Link>
+              {user && (
+                <>
+                  <Link to={dashboardRoute} className={navItemClass(dashboardRoute)}>
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
                   </Link>
-                )}
-              </div>
-            )}
+                  {role === 'PET_OWNER' && (
+                    <Link to="/ai-advisor" className={navItemClass('/ai-advisor')}>
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      <span>AI Health Guide</span>
+                    </Link>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* User actions */}

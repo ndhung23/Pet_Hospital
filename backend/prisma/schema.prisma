@@ -58,9 +58,10 @@ model User {
   employee               Employee?
   refreshTokens          RefreshToken[]
   aiChatLogs             AIChatLog[]
-  processedAppointments  Appointment[]  @relation("ReceptionistAppointments")
-  assignedAppointments   Appointment[]  @relation("VeterinarianAppointments")
-  triageRecords          TriageRecord[] @relation("ReceptionistTriageRecords")
+  processedAppointments  Appointment[]   @relation("ReceptionistAppointments")
+  assignedAppointments   Appointment[]   @relation("VeterinarianAppointments")
+  triageRecords          TriageRecord[]  @relation("ReceptionistTriageRecords")
+  examinedMedicalRecords MedicalRecord[] @relation("VeterinarianMedicalRecords")
 
   @@map("users")
 }
@@ -142,16 +143,28 @@ model Pet {
 }
 
 model MedicalRecord {
-  id            String   @id @default(uuid()) @db.Uuid
-  petId         String   @db.Uuid
-  diagnosis     String   @db.Text
-  treatmentPlan String   @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String       @id @default(uuid()) @db.Uuid
+  petId            String       @db.Uuid
+  appId            String?      @unique @db.Uuid
+  vetId            String?      @db.Uuid
+  weight           Float?
+  temperature      Float?
+  heartRate        Int?
+  clinicalFindings String?      @db.Text
+  diagnosis        String       @db.Text
+  treatmentPlan    String       @db.Text
+  isLocked         Boolean      @default(false)
+  lockedAt         DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+  pet          Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
+  appointment  Appointment? @relation(fields: [appId], references: [id], onDelete: SetNull)
+  veterinarian User?        @relation("VeterinarianMedicalRecords", fields: [vetId], references: [id], onDelete: SetNull)
 
   @@index([petId])
+  @@index([appId])
+  @@index([vetId])
   @@map("medical_records")
 }
 
@@ -182,10 +195,11 @@ model Appointment {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  pet          Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
-  receptionist User          @relation("ReceptionistAppointments", fields: [recepId], references: [id], onDelete: Restrict)
-  veterinarian User?         @relation("VeterinarianAppointments", fields: [vetId], references: [id], onDelete: SetNull)
+  pet          Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  receptionist User           @relation("ReceptionistAppointments", fields: [recepId], references: [id], onDelete: Restrict)
+  veterinarian User?          @relation("VeterinarianAppointments", fields: [vetId], references: [id], onDelete: SetNull)
   triageRecord TriageRecord?
+  medicalRecord MedicalRecord?
 
   @@index([petId])
   @@index([recepId])
