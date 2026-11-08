@@ -21,6 +21,27 @@ enum OtpPurpose {
   RESET_PASSWORD
 }
 
+enum AppointmentStatus {
+  DRAFT
+  EMERGENCY_WAITING
+  CHECKED_IN
+  IN_EXAMINATION
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum AppointmentType {
+  EMERGENCY
+  ROUTINE
+}
+
+enum ConditionLevel {
+  LEVEL_1_CRITICAL
+  LEVEL_2_URGENT
+  LEVEL_3_STANDARD
+}
+
 model User {
   id           String         @id @default(uuid()) @db.Uuid
   userName     String         @unique @db.VarChar(50)
@@ -33,10 +54,13 @@ model User {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  petOwner     PetOwner?
-  employee     Employee?
-  refreshTokens RefreshToken[]
-  aiChatLogs   AIChatLog[]
+  petOwner               PetOwner?
+  employee               Employee?
+  refreshTokens          RefreshToken[]
+  aiChatLogs             AIChatLog[]
+  processedAppointments  Appointment[]  @relation("ReceptionistAppointments")
+  assignedAppointments   Appointment[]  @relation("VeterinarianAppointments")
+  triageRecords          TriageRecord[] @relation("ReceptionistTriageRecords")
 
   @@map("users")
 }
@@ -111,6 +135,7 @@ model Pet {
   owner          PetOwner        @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   medicalRecords MedicalRecord[]
   aiChatLogs     AIChatLog[]
+  appointments   Appointment[]
 
   @@index([ownerId])
   @@map("pets")
@@ -143,4 +168,46 @@ model AIChatLog {
 
   @@index([userId, createdAt])
   @@map("ai_chat_logs")
+}
+
+model Appointment {
+  id        String            @id @default(uuid()) @db.Uuid
+  petId     String            @db.Uuid
+  recepId   String            @db.Uuid
+  vetId     String?           @db.Uuid
+  startTime DateTime          @default(now())
+  status    AppointmentStatus @default(EMERGENCY_WAITING)
+  type      AppointmentType   @default(EMERGENCY)
+  notes     String?           @db.Text
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  pet          Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
+  receptionist User          @relation("ReceptionistAppointments", fields: [recepId], references: [id], onDelete: Restrict)
+  veterinarian User?         @relation("VeterinarianAppointments", fields: [vetId], references: [id], onDelete: SetNull)
+  triageRecord TriageRecord?
+
+  @@index([petId])
+  @@index([recepId])
+  @@index([vetId])
+  @@index([status])
+  @@map("appointments")
+}
+
+model TriageRecord {
+  id              String         @id @default(uuid()) @db.Uuid
+  appId           String         @unique @db.Uuid
+  recepId         String         @db.Uuid
+  conditionLevel  ConditionLevel
+  initialSymptoms String         @db.Text
+  triageTime      DateTime       @default(now())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  appointment  Appointment @relation(fields: [appId], references: [id], onDelete: Cascade)
+  receptionist User        @relation("ReceptionistTriageRecords", fields: [recepId], references: [id], onDelete: Restrict)
+
+  @@index([recepId])
+  @@index([conditionLevel])
+  @@map("triage_records")
 }
