@@ -153,9 +153,9 @@ const EmergencyIntakeModal = ({ isOpen, onClose, onSuccess }) => {
               <Siren className="w-6 h-6 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-lg font-bold">Emergency Triage Intake (UC-EMG-01)</h2>
+              <h2 className="text-lg font-bold">Tiếp Nhận Cấp Cứu Khẩn Cấp</h2>
               <p className="text-xs text-rose-100">
-                Walk-in triage priority routing & clinical queue assignment (BR-04)
+                Phân loại mức độ nghiêm trọng & điều phối bác sĩ khám ưu tiên
               </p>
             </div>
           </div>
@@ -170,10 +170,10 @@ const EmergencyIntakeModal = ({ isOpen, onClose, onSuccess }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
-          {/* 1. SEVERITY LEVEL CARDS (BR-04) */}
+          {/* 1. SEVERITY LEVEL CARDS */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Select Condition Severity Level (BR-04 Priority Overriding) *
+              Chọn mức độ nghiêm trọng (Phân loại ưu tiên cấp cứu) *
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Level 1 - Critical */}
@@ -405,7 +405,7 @@ const EmergencyIntakeModal = ({ isOpen, onClose, onSuccess }) => {
               <span>Assign On-Duty Emergency Veterinarian *</span>
               {vets.length === 0 && (
                 <span className="text-[11px] font-bold text-amber-600">
-                  ⚠️ No Vet on Duty! Manager fallback available (2.0.E1)
+                  ⚠️ Chưa có bác sĩ trực! Tự động chuyển quản lý phụ trách
                 </span>
               )}
             </label>

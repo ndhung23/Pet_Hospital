@@ -80,10 +80,10 @@ const PetOwnerDashboard = () => {
           </div>
           <h3 className="font-bold text-slate-800 text-lg">Online Appointments</h3>
           <p className="text-slate-500 text-sm mt-2 leading-relaxed">
-            Book appointments with on-duty veterinarians (UC-BOOK-01 module scheduled in next sprint).
+            Đặt lịch khám trực tuyến với bác sĩ thú y theo khung giờ mong muốn.
           </p>
           <span className="inline-block mt-4 text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md">
-            Coming Soon (UC-BOOK-01)
+            Tính năng sắp ra mắt
           </span>
         </div>
       </div>

@@ -102,11 +102,11 @@ const Home = () => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-blue-600">Level 1-3</p>
-                  <p className="text-xs text-slate-500 font-medium">BR-04 Priority Queue</p>
+                  <p className="text-xs text-slate-500 font-medium">Priority Queue</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-indigo-600">100%</p>
-                  <p className="text-xs text-slate-500 font-medium">Immutable EMR</p>
+                  <p className="text-xs text-slate-500 font-medium">Electronic EMR</p>
                 </div>
               </div>
             </div>
@@ -175,7 +175,7 @@ const Home = () => {
               <div className="lg:col-span-8 space-y-3">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                  <span>EMERGENCY WALK-IN PROTOCOL (BR-04)</span>
+                  <span>TIẾP NHẬN CẤP CỨU KHẨN CẤP 24/7</span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                   Has your pet suffered sudden trauma or acute illness?
@@ -242,13 +242,13 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
                 <AlertTriangle className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Emergency Triage (EMG-01)</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Phân Loại Cấp Cứu Khẩn Cấp</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Walk-in reception intake with 3-tier severity assessment. Automatically routes critical patients into priority veterinary queues with audible alerts.
+                Tiếp nhận tại quầy lễ tân với đánh giá phân tầng 3 cấp độ nghiêm trọng. Tự động chuyển bệnh nhân nguy cấp vào hàng đợi ưu tiên của bác sĩ trực.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-200 flex items-center text-xs font-semibold text-rose-600">
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                <span>BR-04 Priority Rule Engine</span>
+                <span>Hàng đợi ưu tiên tự động</span>
               </div>
             </div>
 
@@ -257,13 +257,13 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">AI Health Advisor (AI-01)</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Bác Sĩ Trợ Lý AI</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Powered by Gemini 2.0 Flash. Enriched with pet clinical history to provide pet owners with rapid preliminary advice and emergency danger detection.
+                Tích hợp mô hình AI thông minh. Kết hợp lịch sử lâm sàng của thú cưng để tư vấn sơ cứu nhanh và cảnh báo nguy cơ khẩn cấp 24/7.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-200 flex items-center text-xs font-semibold text-indigo-600">
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                <span>8s Watchdog & Rate Limiting</span>
+                <span>Phản hồi tức thì & Chính xác</span>
               </div>
             </div>
 
@@ -272,13 +272,13 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
                 <FileText className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Electronic Medical Records (BR-07)</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Hồ Sơ Bệnh Án Điện Tử (EMR)</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Centralized patient history, vital signs (weight, temperature, heart rate), clinical findings, and treatment plans locked 24 hours post-consultation.
+                Quản lý lịch sử khám tập trung, chỉ số sinh hiệu (cân nặng, thân nhiệt, nhịp tim), chẩn đoán y khoa và phác đồ điều trị an toàn, bảo mật.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-200 flex items-center text-xs font-semibold text-blue-600">
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                <span>Tamper-evident legal audit trail</span>
+                <span>Lưu trữ số hóa an toàn & minh bạch</span>
               </div>
             </div>
 
@@ -287,13 +287,13 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
                 <Stethoscope className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Specialist Veterinarian Consultation</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Khám Chuyên Khoa Thú Y</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Experienced veterinary practitioners dedicated to internal medicine, orthopedic surgery, dermatology, and diagnostic imaging for small animals.
+                Đội ngũ bác sĩ thú y giàu kinh nghiệm điều trị nội khoa, phẫu thuật ngoại khoa, da liễu và chẩn đoán hình ảnh chuyên sâu.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-200 flex items-center text-xs font-semibold text-emerald-600">
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                <span>Licensed Veterinary Staff</span>
+                <span>Bác sĩ thú y chứng chỉ hành nghề</span>
               </div>
             </div>
 
@@ -302,13 +302,13 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-4">
                 <Syringe className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Diagnostic Laboratory & Imaging</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Xét Nghiệm & Chẩn Đoán Hình Ảnh</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                In-house digital radiography, ultrasonography, hematology, and biochemistry analyzers for same-day clinical decision-making.
+                Hệ thống X-quang kỹ thuật số, siêu âm Doppler, máy huyết học và sinh hóa tự động cho kết quả nhanh ngay trong ngày.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-200 flex items-center text-xs font-semibold text-cyan-600">
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                <span>Integrated Lab Testing</span>
+                <span>Xét nghiệm tại chỗ đồng bộ</span>
               </div>
             </div>
 
@@ -317,13 +317,13 @@ const Home = () => {
               <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
                 <ShieldCheck className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Role-Based Access Security</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Bảo Mật Quyền Truy Cập (RBAC)</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Strict separation of roles (Pet Owner, Receptionist, Veterinarian, Nurse, Clinic Manager) ensuring client confidentiality and data integrity.
+                Phân quyền chặt chẽ giữa Chủ nuôi, Lễ tân, Bác sĩ, Y tá và Quản lý phòng khám nhằm bảo vệ dữ liệu hồ sơ bệnh nhân tối đa.
               </p>
               <div className="mt-4 pt-4 border-t border-slate-200 flex items-center text-xs font-semibold text-purple-600">
                 <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                <span>BR-01 BCrypt & JWT Security</span>
+                <span>Bảo mật y tế đa lớp</span>
               </div>
             </div>
           </div>
@@ -463,7 +463,7 @@ const Home = () => {
                 Veterinary Care & Clinical Suite. Providing advanced medical solutions and emergency triage for all pets.
               </p>
               <p className="text-slate-500 text-[11px]">
-                ISO-certified clinical standards & BR-07 compliant medical records.
+                Chuẩn mực lâm sàng chất lượng cao & lưu trữ hồ sơ bệnh án bảo mật.
               </p>
             </div>
 

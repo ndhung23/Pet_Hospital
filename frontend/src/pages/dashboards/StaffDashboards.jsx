@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { triageService } from '../../services/triageService';
 import EmergencyIntakeModal from '../../components/triage/EmergencyIntakeModal';
+import AiScheduleManager from '../../components/schedule/AiScheduleManager';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import Spinner from '../../components/ui/Spinner';
@@ -32,6 +33,7 @@ import {
   VolumeX,
   PlayCircle,
   FileText,
+  Sparkles,
 } from 'lucide-react';
 
 /* =========================================================================
@@ -65,8 +67,8 @@ export const ManagerDashboard = () => {
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'schedules', label: 'Lịch Làm Việc & Xếp Ca AI', icon: CalendarDays, badge: 'AI Smart' },
     { id: 'staff', label: 'Staff & Personnel', icon: Users },
-    { id: 'schedules', label: 'Duty Shifts & Roster', icon: CalendarDays },
     { id: 'leaves', label: 'Leave Requests', icon: FileSpreadsheet, badge: '2 pending' },
     { id: 'services', label: 'Services & Pharmacy', icon: Pill },
     { id: 'reports', label: 'Analytics & Invoices', icon: TrendingUp },
@@ -141,7 +143,37 @@ export const ManagerDashboard = () => {
 
         {/* RIGHT COLUMN: 10 COLS */}
         <main className="col-span-12 lg:col-span-10 p-6 sm:p-8 space-y-8 min-h-screen">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          {activeTab === 'schedules' ? (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800 uppercase tracking-wide flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" /> AI Scheduling Module
+                    </span>
+                    <span className="text-xs text-slate-400">Roster & Shift Operations</span>
+                  </div>
+                  <h1 className="text-2xl font-bold text-slate-800 mt-1 flex items-center gap-2">
+                    <CalendarDays className="w-6 h-6 text-indigo-600" />
+                    <span>Lịch Làm Việc & Xếp Ca Tự Động Bằng AI</span>
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                    Mô hình AI tự động phân bổ ca trực 24/7 (Sáng, Chiều, Đêm), bảo đảm độ phủ cấp cứu và cân bằng khối lượng công việc.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700"
+                >
+                  Quay lại Tổng quan
+                </button>
+              </div>
+
+              <AiScheduleManager />
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div>
               <div className="flex items-center gap-2">
                 <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 uppercase tracking-wide">
@@ -161,6 +193,13 @@ export const ManagerDashboard = () => {
             </div>
 
             <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => setActiveTab('schedules')}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-colors shadow-sm shadow-indigo-200"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                <span>AI Tạo Lịch Làm Việc</span>
+              </button>
               <button className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm">
                 <Download className="w-3.5 h-3.5 text-slate-500" />
                 <span>Export Daily Report</span>
@@ -310,7 +349,7 @@ export const ManagerDashboard = () => {
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-blue-800" />
                   <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900">
-                    Hospital Policy Reminder (BR-03)
+                    Quy định Phê duyệt & Lịch trực
                   </h4>
                 </div>
                 <p className="text-xs text-blue-800 leading-relaxed">
@@ -325,7 +364,9 @@ export const ManagerDashboard = () => {
               </div>
             </div>
           </div>
-        </main>
+        </>
+      )}
+    </main>
       </div>
     </div>
   );
@@ -398,7 +439,7 @@ export const ReceptionDashboard = () => {
           className="flex items-center gap-2.5 shadow-md shadow-rose-200 text-sm font-bold py-3.5 px-6 rounded-2xl"
         >
           <Siren className="w-5 h-5 animate-bounce" />
-          <span>+ Emergency Walk-In Intake (UC-EMG-01)</span>
+          <span>+ Tiếp Nhận Cấp Cứu Khẩn Cấp</span>
         </Button>
       </div>
 
@@ -414,8 +455,8 @@ export const ReceptionDashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-400">Active Emergency Queue</span>
-            <div className="text-2xl font-bold text-slate-800 mt-1">{queue.length} Cases</div>
+            <span className="text-xs font-medium text-slate-400">Hàng Đợi Cấp Cứu Đang Chờ</span>
+            <div className="text-2xl font-bold text-slate-800 mt-1">{queue.length} Ca</div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <Clock className="w-5 h-5" />
@@ -424,8 +465,8 @@ export const ReceptionDashboard = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-400">Level 1 - Critical (Position #1)</span>
-            <div className="text-2xl font-bold text-rose-600 mt-1">{criticalCount} Critical</div>
+            <span className="text-xs font-medium text-slate-400">Cấp độ 1 - Nguy kịch (Ưu tiên số 1)</span>
+            <div className="text-2xl font-bold text-rose-600 mt-1">{criticalCount} Ca</div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
             <Siren className="w-5 h-5" />
@@ -434,9 +475,9 @@ export const ReceptionDashboard = () => {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-slate-400">Triage Overriding Rule</span>
-            <div className="text-xs font-bold text-slate-700 mt-1.5">BR-04 Active</div>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Critical cases interrupt routine</span>
+            <span className="text-xs font-medium text-slate-400">Cơ chế phân loại</span>
+            <div className="text-xs font-bold text-emerald-700 mt-1.5">Ưu tiên cấp cứu trực tiếp</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Ca nguy cấp ngắt lịch thường</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
             <ShieldAlert className="w-5 h-5" />
@@ -450,17 +491,17 @@ export const ReceptionDashboard = () => {
           <div>
             <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
               <Activity className="w-5 h-5 text-rose-600" />
-              <span>Live Emergency Priority Queue (BR-04 Sorted)</span>
+              <span>Hàng Đợi Cấp Cứu Ưu Tiên Trực Tuyến</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Patients automatically prioritized: Critical (Pos #1) → Urgent (Pos #2) → Standard (FIFO)
+              Tự động phân tầng: Nguy kịch (Ưu tiên #1) → Khẩn cấp (Ưu tiên #2) → Tiêu chuẩn (Thứ tự tiếp nhận)
             </p>
           </div>
           <button
             onClick={fetchQueue}
             className="text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
           >
-            Refresh Queue
+            Làm mới danh sách
           </button>
         </div>
 
@@ -471,16 +512,16 @@ export const ReceptionDashboard = () => {
         ) : queue.length === 0 ? (
           <div className="py-12 text-center text-slate-400 space-y-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-            <p className="text-sm font-semibold text-slate-600">No active emergency cases in queue.</p>
-            <p className="text-xs">Click "+ Emergency Walk-In Intake" above when an unscheduled emergency arrives.</p>
+            <p className="text-sm font-semibold text-slate-600">Không có ca cấp cứu nào đang chờ.</p>
+            <p className="text-xs">Bấm "+ Tiếp Nhận Cấp Cứu Khẩn Cấp" khi có bệnh nhân tới quầy tiếp tân.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead>
                 <tr className="text-slate-400 border-b border-slate-100 text-[11px] uppercase tracking-wider">
-                  <th className="pb-3 font-semibold">Priority #</th>
-                  <th className="pb-3 font-semibold">Severity (BR-04)</th>
+                  <th className="pb-3 font-semibold">Ưu tiên #</th>
+                  <th className="pb-3 font-semibold">Mức độ nghiêm trọng</th>
                   <th className="pb-3 font-semibold">Patient & Owner</th>
                   <th className="pb-3 font-semibold">Observed Symptoms</th>
                   <th className="pb-3 font-semibold">Assigned Vet</th>
@@ -691,10 +732,10 @@ export const VetDashboard = () => {
           </div>
           <h1 className="text-2xl font-bold text-slate-800 mt-1 flex items-center gap-2">
             <Stethoscope className="w-6 h-6 text-emerald-600" />
-            <span>Emergency Queue & Clinical Intake</span>
+            <span>Hàng Đợi Cấp Cứu & Khám Bệnh Trực Tuyến</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Real-time emergency triage dispatcher conforming to BR-04 priority overriding rules.
+            Tiếp nhận và điều phối ca khám lâm sàng theo thời gian thực.
           </p>
         </div>
 
@@ -708,14 +749,14 @@ export const VetDashboard = () => {
             }`}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            <span>{soundEnabled ? 'Alert Chime: ON' : 'Alert Chime: OFF'}</span>
+            <span>{soundEnabled ? 'Âm thanh cảnh báo: BẬT' : 'Âm thanh: TẮT'}</span>
           </button>
 
           <button
             onClick={fetchQueue}
             className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"
           >
-            Refresh
+            Làm mới
           </button>
         </div>
       </div>
@@ -728,7 +769,7 @@ export const VetDashboard = () => {
         />
       )}
 
-      {/* CRITICAL POPUP BANNER (Workflow 5, Step 9: Siren + Banner on Vet Dashboard) */}
+      {/* CRITICAL POPUP BANNER */}
       {criticalWaitingList.length > 0 && (
         <div className="bg-gradient-to-r from-rose-600 via-rose-700 to-red-800 text-white p-5 rounded-3xl shadow-lg shadow-rose-200 flex flex-col sm:flex-row items-center justify-between gap-4 animate-bounce">
           <div className="flex items-center gap-3.5">
@@ -737,13 +778,13 @@ export const VetDashboard = () => {
             </div>
             <div>
               <div className="text-xs font-black uppercase tracking-widest text-rose-200">
-                CRITICAL EMERGENCY ALERT (BR-04 POSITION #1)
+                🚨 CẢNH BÁO BỆNH NHÂN CẤP CỨU NGUY KỊCH (ƯU TIÊN SỐ 1)
               </div>
               <h3 className="text-base sm:text-lg font-bold">
-                {criticalWaitingList.length} Critical Patient(s) awaiting immediate resuscitation!
+                Có {criticalWaitingList.length} ca nguy kịch cần sơ cứu / hồi sức tức thì!
               </h3>
               <p className="text-xs text-rose-100 mt-0.5">
-                Ongoing routine consultations must be interrupted to admit Level 1 emergency patient immediately.
+                Các ca khám thường cần tạm hoãn để ưu tiên tiếp nhận cấp cứu Level 1.
               </p>
             </div>
           </div>
@@ -806,16 +847,16 @@ export const VetDashboard = () => {
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
                 <p className="font-semibold text-slate-800 flex items-center gap-1.5">
                   <FileText className="w-4 h-4 text-blue-600" />
-                  <span>Next Clinical Action:</span>
+                  <span>Bước khám tiếp theo:</span>
                 </p>
-                <p>Record vital signs (Temperature, Weight, Heart Rate) and conduct examination per UC-EMR-01.</p>
+                <p>Ghi nhận chỉ số sinh hiệu (Nhiệt độ, Cân nặng, Nhịp tim) và tiến hành chẩn đoán lâm sàng.</p>
               </div>
             </div>
           ) : (
             <div className="py-12 text-center text-slate-400 space-y-2">
               <Stethoscope className="w-8 h-8 text-slate-300 mx-auto" />
-              <p className="text-xs font-medium text-slate-500">No active patient currently in examination.</p>
-              <p className="text-[11px]">Select a patient from the emergency queue on the right to start examination.</p>
+              <p className="text-xs font-medium text-slate-500">Chưa có bệnh nhân nào đang trong ca khám.</p>
+              <p className="text-[11px]">Chọn một ca từ danh sách cấp cứu bên phải để bắt đầu khám bệnh.</p>
             </div>
           )}
         </div>
@@ -826,10 +867,10 @@ export const VetDashboard = () => {
             <div>
               <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
                 <Activity className="w-5 h-5 text-rose-600" />
-                <span>Priority Emergency Queue (BR-04)</span>
+                <span>Hàng Đợi Cấp Cứu Ưu Tiên</span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Evaluated walk-in emergency tickets sorted by condition level
+                Danh sách ca khám cấp cứu được phân loại theo mức độ nghiêm trọng
               </p>
             </div>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700">
@@ -969,7 +1010,7 @@ export const LabDashboard = () => {
         </div>
         <div className="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-sm text-indigo-800 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-          <span>Paraclinical lab orders & inpatient nursing care queue (UC-LAB-01 / UC-LAB-02).</span>
+          <span>Hàng đợi chỉ định cận lâm sàng, xét nghiệm & chăm sóc nội trú.</span>
         </div>
       </div>
     </div>

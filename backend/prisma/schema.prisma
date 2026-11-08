@@ -42,6 +42,18 @@ enum ConditionLevel {
   LEVEL_3_STANDARD
 }
 
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  NIGHT
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id           String         @id @default(uuid()) @db.Uuid
   userName     String         @unique @db.VarChar(50)
@@ -62,6 +74,7 @@ model User {
   assignedAppointments   Appointment[]   @relation("VeterinarianAppointments")
   triageRecords          TriageRecord[]  @relation("ReceptionistTriageRecords")
   examinedMedicalRecords MedicalRecord[] @relation("VeterinarianMedicalRecords")
+  workShifts             WorkShift[]     @relation("UserWorkShifts")
 
   @@map("users")
 }
@@ -224,4 +237,24 @@ model TriageRecord {
   @@index([recepId])
   @@index([conditionLevel])
   @@map("triage_records")
+}
+
+model WorkShift {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @db.Uuid
+  date        DateTime    @db.Date
+  shiftType   ShiftType
+  status      ShiftStatus @default(SCHEDULED)
+  roomOrDesk  String?     @db.VarChar(50)
+  notes       String?     @db.Text
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user User @relation("UserWorkShifts", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, shiftType])
+  @@index([date])
+  @@index([userId])
+  @@index([shiftType])
+  @@map("work_shifts")
 }
