@@ -21,6 +21,12 @@ import {
   ManagerDashboard,
 } from './pages/dashboards/StaffDashboards';
 
+// CRUD Pages (HE194418 - Nhac Tuan Anh)
+import BookAppointmentView from './pages/BookAppointmentView';
+import AppointmentListView from './pages/AppointmentListView';
+import PetListView from './pages/PetListView';
+import AddPetView from './pages/AddPetView';
+
 // Root redirect component based on authentication state
 const RootRedirect = () => {
   const { isAuthenticated, role, loading } = useAuth();
@@ -50,9 +56,15 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* Protected Routes for All Authenticated Users (AUTH-04, AUTH-05) */}
+              {/* Protected Routes for All Authenticated Users */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
+
+                {/* CRUD Use Cases for Pet and Appointment */}
+                <Route path="/appointments" element={<AppointmentListView />} />
+                <Route path="/appointments/book" element={<BookAppointmentView />} />
+                <Route path="/pets" element={<PetListView />} />
+                <Route path="/pets/add" element={<AddPetView />} />
               </Route>
 
               {/* Role-Specific Protected Routes */}

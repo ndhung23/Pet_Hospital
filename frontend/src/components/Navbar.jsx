@@ -8,6 +8,9 @@ import {
   LayoutDashboard,
   LogOut,
   User,
+  Calendar,
+  PawPrint,
+  CalendarPlus,
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -42,7 +45,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Brand */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-6">
             <Link to={dashboardRoute} className="flex items-center space-x-2.5">
               <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shadow-blue-200">
                 <HeartPulse className="w-5 h-5" />
@@ -58,15 +61,32 @@ const Navbar = () => {
             </Link>
 
             {user && (
-              <div className="hidden md:flex items-center space-x-2">
+              <div className="hidden md:flex items-center space-x-1">
                 <Link to={dashboardRoute} className={navItemClass(dashboardRoute)}>
                   <LayoutDashboard className="w-4 h-4" />
                   <span>Dashboard</span>
                 </Link>
+
+                {/* CRUD Links for Pet & Appointment */}
+                <Link to="/pets" className={navItemClass('/pets')}>
+                  <PawPrint className="w-4 h-4 text-emerald-600" />
+                  <span>Pets</span>
+                </Link>
+
+                <Link to="/appointments" className={navItemClass('/appointments')}>
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span>Appointments</span>
+                </Link>
+
+                <Link to="/appointments/book" className={navItemClass('/appointments/book')}>
+                  <CalendarPlus className="w-4 h-4 text-indigo-600" />
+                  <span>Book Visit</span>
+                </Link>
+
                 {role === 'PET_OWNER' && (
                   <Link to="/ai-advisor" className={navItemClass('/ai-advisor')}>
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span>AI Health Guide</span>
+                    <Sparkles className="w-4 h-4 text-purple-600" />
+                    <span>AI Guide</span>
                   </Link>
                 )}
               </div>

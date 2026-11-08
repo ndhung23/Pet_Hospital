@@ -21,6 +21,21 @@ enum OtpPurpose {
   RESET_PASSWORD
 }
 
+enum AppointmentStatus {
+  PENDING_APPROVAL
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  CHECKED_IN
+  NO_SHOW
+  COMPLETED
+}
+
+enum AppointmentType {
+  ROUTINE
+  EMERGENCY
+}
+
 model User {
   id           String         @id @default(uuid()) @db.Uuid
   userName     String         @unique @db.VarChar(50)
@@ -33,10 +48,12 @@ model User {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  petOwner     PetOwner?
-  employee     Employee?
-  refreshTokens RefreshToken[]
-  aiChatLogs   AIChatLog[]
+  petOwner        PetOwner?
+  employee        Employee?
+  refreshTokens   RefreshToken[]
+  aiChatLogs      AIChatLog[]
+  vetAppointments Appointment[]  @relation("VetAppointments")
+  dutyRosters     DutyRoster[]   @relation("VetDutyRosters")
 
   @@map("users")
 }
@@ -105,14 +122,17 @@ model Pet {
   gender         String?         @db.VarChar(20)
   weight         Float?
   history        String?         @db.Text
+  isDeleted      Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
   owner          PetOwner        @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   medicalRecords MedicalRecord[]
   aiChatLogs     AIChatLog[]
+  appointments   Appointment[]
 
   @@index([ownerId])
+  @@index([isDeleted])
   @@map("pets")
 }
 
@@ -143,4 +163,62 @@ model AIChatLog {
 
   @@index([userId, createdAt])
   @@map("ai_chat_logs")
+}
+
+model Service {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(100)
+  species     String   @default("All") @db.VarChar(50)
+  size        String   @default("All") @db.VarChar(50)
+  price       Float    @default(0)
+  description String?  @db.Text
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([active])
+  @@map("services")
+}
+
+model DutyRoster {
+  id         String   @id @default(uuid()) @db.Uuid
+  vetId      String   @db.Uuid
+  date       String   @db.VarChar(20)
+  shiftStart String   @default("08:00") @db.VarChar(10)
+  shiftEnd   String   @default("17:00") @db.VarChar(10)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  vet User @relation("VetDutyRosters", fields: [vetId], references: [id], onDelete: Cascade)
+
+  @@unique([vetId, date])
+  @@index([date])
+  @@map("duty_rosters")
+}
+
+model Appointment {
+  id              String            @id @default(uuid()) @db.Uuid
+  appointmentCode String            @unique @db.VarChar(50)
+  petId           String            @db.Uuid
+  ownerId         String            @db.Uuid
+  serviceId       String            @db.Uuid
+  vetId           String?           @db.Uuid
+  receptionistId  String?           @db.Uuid
+  startTime       DateTime
+  status          AppointmentStatus @default(PENDING_APPROVAL)
+  type            AppointmentType   @default(ROUTINE)
+  visitNote       String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  pet     Pet     @relation(fields: [petId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id])
+  vet     User?   @relation("VetAppointments", fields: [vetId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([petId])
+  @@index([vetId, startTime])
+  @@map("appointments")
 }
