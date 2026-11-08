@@ -5,6 +5,7 @@ import { getRoleDashboardRoute } from '../contexts/AuthContext';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
+import { HeartPulse, LogIn } from 'lucide-react';
 
 const Login = () => {
   const [identifier, setIdentifier] = useState('');
@@ -42,11 +43,11 @@ const Login = () => {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full text-2xl mb-2">
-            🐾
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl mb-3 shadow-sm shadow-blue-100">
+            <HeartPulse className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">Welcome Back</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Sign in to access your PHMS Veterinary portal
           </p>
         </div>
@@ -84,8 +85,9 @@ const Login = () => {
             </Link>
           </div>
 
-          <Button type="submit" variant="primary" className="w-full" isLoading={loading}>
-            Sign In
+          <Button type="submit" variant="primary" className="w-full flex items-center justify-center gap-2" isLoading={loading}>
+            <LogIn className="w-4 h-4" />
+            <span>Sign In</span>
           </Button>
         </form>
 

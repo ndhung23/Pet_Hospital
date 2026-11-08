@@ -4,9 +4,10 @@ import { authService } from '../services/authService';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
+import { KeyRound, ArrowLeft } from 'lucide-react';
 
 const ForgotPassword = () => {
-  const [step, setStep] = useState(1); // 1 = Enter Email, 2 = Enter OTP & New Password
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -96,13 +97,13 @@ const ForgotPassword = () => {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-100 text-amber-600 rounded-full text-2xl mb-2">
-            🔑
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl mb-3 shadow-sm shadow-amber-100">
+            <KeyRound className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-bold text-slate-800">
             {step === 1 ? 'Reset Password' : 'Set New Password'}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             {step === 1
               ? 'Enter your registered email to receive a verification OTP'
               : `Enter the code sent to ${email} and set your new password`}
@@ -185,8 +186,9 @@ const ForgotPassword = () => {
 
         <div className="mt-6 pt-6 border-t border-slate-100 text-center text-sm text-slate-600">
           Remember your password?{' '}
-          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-            Back to Sign In
+          <Link to="/login" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Sign In</span>
           </Link>
         </div>
       </div>

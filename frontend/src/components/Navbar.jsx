@@ -2,6 +2,13 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getRoleDashboardRoute } from '../contexts/AuthContext';
+import {
+  HeartPulse,
+  Sparkles,
+  LayoutDashboard,
+  LogOut,
+  User,
+} from 'lucide-react';
 
 const Navbar = () => {
   const { user, role, logout } = useAuth();
@@ -24,7 +31,7 @@ const Navbar = () => {
   };
 
   const navItemClass = (path) =>
-    `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+    `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
       location.pathname === path
         ? 'bg-blue-50 text-blue-700 font-semibold'
         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -36,21 +43,30 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           {/* Brand */}
           <div className="flex items-center space-x-8">
-            <Link to={dashboardRoute} className="flex items-center space-x-2">
-              <span className="text-2xl">🐾</span>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                PHMS Hospital
-              </span>
+            <Link to={dashboardRoute} className="flex items-center space-x-2.5">
+              <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm shadow-blue-200">
+                <HeartPulse className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-lg font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+                  PHMS Hospital
+                </span>
+                <span className="hidden sm:block text-[10px] text-slate-400 font-medium -mt-1">
+                  Veterinary Care & Clinical Suite
+                </span>
+              </div>
             </Link>
 
             {user && (
               <div className="hidden md:flex items-center space-x-2">
                 <Link to={dashboardRoute} className={navItemClass(dashboardRoute)}>
-                  Dashboard
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
                 </Link>
                 {role === 'PET_OWNER' && (
                   <Link to="/ai-advisor" className={navItemClass('/ai-advisor')}>
-                    ✨ AI Health Guide
+                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                    <span>AI Health Guide</span>
                   </Link>
                 )}
               </div>
@@ -63,14 +79,14 @@ const Navbar = () => {
               <>
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 text-sm text-slate-700 hover:text-blue-600 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-white transition-colors"
+                  className="flex items-center space-x-2 text-xs sm:text-sm text-slate-700 hover:text-blue-600 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white transition-colors"
                 >
-                  <span className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase">
-                    {user.fullName ? user.fullName.charAt(0) : 'U'}
-                  </span>
+                  <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                    <User className="w-4 h-4" />
+                  </div>
                   <div className="text-left hidden sm:block">
-                    <p className="text-xs font-semibold leading-tight">{user.fullName}</p>
-                    <span className="inline-block text-[10px] font-medium px-1.5 py-0.2 rounded bg-blue-100 text-blue-800">
+                    <p className="text-xs font-semibold leading-tight text-slate-800">{user.fullName}</p>
+                    <span className="inline-block text-[10px] font-medium text-slate-500">
                       {roleLabels[role] || role}
                     </span>
                   </div>
@@ -78,9 +94,10 @@ const Navbar = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="text-xs sm:text-sm text-rose-600 hover:text-rose-700 font-medium px-3 py-1.5 rounded-md hover:bg-rose-50 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs sm:text-sm text-rose-600 hover:text-rose-700 font-medium px-3 py-1.5 rounded-lg hover:bg-rose-50 transition-colors"
                 >
-                  Logout
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </>
             ) : (

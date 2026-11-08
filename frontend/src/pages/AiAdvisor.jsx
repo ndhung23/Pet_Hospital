@@ -4,6 +4,13 @@ import { profileService } from '../services/profileService';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
 import Spinner from '../components/ui/Spinner';
+import {
+  Sparkles,
+  Send,
+  Lightbulb,
+  HeartPulse,
+  Info,
+} from 'lucide-react';
 
 const AiAdvisor = () => {
   const [messages, setMessages] = useState([]);
@@ -70,7 +77,7 @@ const AiAdvisor = () => {
     const optimisticLog = {
       id: `temp-${Date.now()}`,
       questionRaw: currentMsg,
-      aiResponse: null, // Loading indicator
+      aiResponse: null,
       createdAt: new Date().toISOString(),
       pet: pets.find((p) => p.id === selectedPetId) || null,
     };
@@ -84,7 +91,6 @@ const AiAdvisor = () => {
         petId: selectedPetId || null,
       });
 
-      // Replace optimistic log with real saved chat log
       setMessages((prev) =>
         prev.map((m) => (m.id === optimisticLog.id ? responseData.chatLog : m))
       );
@@ -98,13 +104,12 @@ const AiAdvisor = () => {
         'AI Health Advisor is temporarily busy. Please try again or contact our clinic hotline directly for urgent pet care.';
       setError(errorMsg);
 
-      // Revert or replace optimistic log with error notification
       setMessages((prev) =>
         prev.map((m) =>
           m.id === optimisticLog.id
             ? {
                 ...m,
-                aiResponse: `⚠️ ${errorMsg}`,
+                aiResponse: `Error: ${errorMsg}`,
               }
             : m
         )
@@ -125,11 +130,13 @@ const AiAdvisor = () => {
       {/* Top Bar: Title & Pet Context Selector */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xl shadow-sm">
-            ✨
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-sm">
+            <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-800">Gemini AI Pet Health Advisor</h1>
+            <h1 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+              <span>Gemini AI Pet Health Advisor</span>
+            </h1>
             <p className="text-xs text-slate-500">
               24/7 symptom guidance with clinical history context
             </p>
@@ -175,10 +182,10 @@ const AiAdvisor = () => {
           </div>
         ) : messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
-            <div className="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-3xl mb-3">
-              🐾
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+              <HeartPulse className="w-7 h-7" />
             </div>
-            <h3 className="font-semibold text-slate-700 text-base">How can I assist your pet today?</h3>
+            <h3 className="font-semibold text-slate-800 text-base">How can I assist your pet today?</h3>
             <p className="text-xs text-slate-400 max-w-md mt-1 mb-6">
               Ask about symptoms, dietary advice, or first-aid care. You can pick an example query below:
             </p>
@@ -187,9 +194,10 @@ const AiAdvisor = () => {
                 <button
                   key={idx}
                   onClick={() => setInputMessage(q)}
-                  className="text-left text-xs bg-slate-50 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 p-2.5 rounded-xl transition-colors"
+                  className="flex items-center gap-2 text-left text-xs bg-slate-50 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 p-3 rounded-xl transition-colors"
                 >
-                  💡 {q}
+                  <Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <span>{q}</span>
                 </button>
               ))}
             </div>
@@ -216,7 +224,8 @@ const AiAdvisor = () => {
               <div className="flex justify-start">
                 <div className="max-w-[90%] sm:max-w-[80%] bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
                   <div className="flex items-center space-x-1.5 text-blue-600 text-xs font-semibold mb-1.5">
-                    <span>✨ Gemini Vet Advisor</span>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Gemini Vet Advisor</span>
                   </div>
                   {item.aiResponse ? (
                     <div className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
@@ -253,13 +262,17 @@ const AiAdvisor = () => {
             variant="primary"
             isLoading={sending}
             disabled={!inputMessage.trim() || sending}
-            className="px-5 py-3 rounded-xl"
+            className="px-5 py-3 rounded-xl flex items-center gap-1.5"
           >
-            Send
+            <Send className="w-4 h-4" />
+            <span className="hidden sm:inline">Send</span>
           </Button>
         </div>
         <div className="flex justify-between items-center px-1 mt-1 text-[11px] text-slate-400">
-          <span>Limit: 10 queries per hour • 8-second response SLA</span>
+          <span className="flex items-center gap-1">
+            <Info className="w-3 h-3" />
+            Limit: 10 queries/hour • 8-second response SLA
+          </span>
           <span>{inputMessage.length}/1000</span>
         </div>
       </form>

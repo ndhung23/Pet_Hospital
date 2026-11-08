@@ -5,9 +5,10 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
 import OtpInput from '../components/ui/OtpInput';
+import { UserPlus, ArrowLeft, MailCheck } from 'lucide-react';
 
 const Register = () => {
-  const [step, setStep] = useState(1); // 1 = Form, 2 = OTP Verification
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     fullName: '',
     userName: '',
@@ -30,7 +31,6 @@ const Register = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
-  // Client-side validations
   const validateForm = () => {
     if (
       !formData.fullName.trim() ||
@@ -50,7 +50,6 @@ const Register = () => {
       return false;
     }
 
-    // BR-10 validation
     if (formData.password.length < 8 || formData.password.length > 32) {
       setError('Password must be between 8 and 32 characters long (BR-10).');
       return false;
@@ -101,7 +100,6 @@ const Register = () => {
         email: formData.email,
         otp,
       });
-      // Registration successful -> redirect to login with notification
       navigate('/login', {
         state: { message: 'Account registered and activated successfully! Please sign in.' },
       });
@@ -130,13 +128,13 @@ const Register = () => {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-lg bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full text-2xl mb-2">
-            🐾
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl mb-3 shadow-sm shadow-blue-100">
+            {step === 1 ? <UserPlus className="w-6 h-6" /> : <MailCheck className="w-6 h-6" />}
           </div>
           <h1 className="text-2xl font-bold text-slate-800">
             {step === 1 ? 'Pet Owner Registration' : 'Verify Your Email'}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             {step === 1
               ? 'Create your account to consult AI and manage pet health'
               : `We sent a 6-digit code to ${formData.email}`}
@@ -219,8 +217,9 @@ const Register = () => {
               />
             </div>
 
-            <Button type="submit" variant="primary" className="w-full" isLoading={loading}>
-              Register Account
+            <Button type="submit" variant="primary" className="w-full flex items-center justify-center gap-2" isLoading={loading}>
+              <UserPlus className="w-4 h-4" />
+              <span>Register Account</span>
             </Button>
           </form>
         ) : (
@@ -240,9 +239,10 @@ const Register = () => {
                   setStep(1);
                   setError('');
                 }}
-                className="text-xs text-slate-500 hover:text-slate-700 underline"
+                className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 underline"
               >
-                ← Back to edit registration details
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to edit registration details</span>
               </button>
             </div>
           </div>

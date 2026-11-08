@@ -5,6 +5,17 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from '../components/ui/Alert';
 import Spinner from '../components/ui/Spinner';
+import {
+  Edit3,
+  Lock,
+  Mail,
+  Phone,
+  MapPin,
+  User,
+  ShieldCheck,
+  Building,
+  Calendar,
+} from 'lucide-react';
 
 const Profile = () => {
   const { updateUser } = useAuth();
@@ -15,7 +26,6 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Form edit states
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -54,7 +64,6 @@ const Profile = () => {
   const handleCancel = () => {
     setIsEditing(false);
     setError('');
-    // Reset form data back to current profile
     if (profile) {
       setFormData({
         fullName: profile.fullName || '',
@@ -70,7 +79,6 @@ const Profile = () => {
     setError('');
     setSuccessMsg('');
 
-    // Client-side validations
     if (!formData.fullName.trim() || !formData.phone.trim() || !formData.email.trim()) {
       setError('Full name, phone number, and email are mandatory.');
       return;
@@ -130,13 +138,15 @@ const Profile = () => {
             <Button
               variant="primary"
               size="sm"
+              className="flex items-center gap-1.5"
               onClick={() => {
                 setIsEditing(true);
                 setSuccessMsg('');
                 setError('');
               }}
             >
-              ✏️ Edit / Update Profile
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Edit / Update Profile</span>
             </Button>
           </div>
         )}
@@ -148,34 +158,41 @@ const Profile = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Avatar & Account Meta */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center text-center">
-          <div className="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-4xl uppercase mb-4 shadow-md">
+          <div className="w-20 h-20 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-3xl uppercase mb-3 shadow-md shadow-blue-200">
             {profile?.fullName ? profile.fullName.charAt(0) : 'U'}
           </div>
-          <h2 className="text-lg font-bold text-slate-800">{profile?.fullName}</h2>
-          <span className="mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+          <h2 className="text-base font-bold text-slate-800">{profile?.fullName}</h2>
+          <span className="mt-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800">
             {profile?.role}
           </span>
-          <p className="text-xs text-slate-400 mt-3 font-mono">@{profile?.userName}</p>
+          <p className="text-xs text-slate-400 mt-2 font-mono">@{profile?.userName}</p>
 
-          <div className="w-full mt-6 pt-6 border-t border-slate-100 text-left text-xs text-slate-500 space-y-2">
-            <div className="flex justify-between">
-              <span>Account Status:</span>
+          <div className="w-full mt-6 pt-6 border-t border-slate-100 text-left text-xs text-slate-500 space-y-2.5">
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-1.5 text-slate-400">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Status</span>
+              </span>
               <span className="font-semibold text-emerald-600">
                 {profile?.isActive ? 'Active' : 'Locked'}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span>Member Since:</span>
+            <div className="flex justify-between items-center">
+              <span className="flex items-center gap-1.5 text-slate-400">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Joined</span>
+              </span>
               <span>{new Date(profile?.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Editable Details & Specific Roles */}
+        {/* Right Column: Editable Details */}
         <div className="md:col-span-2 space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="text-base font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100">
-              Personal Information
+            <h3 className="text-base font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center gap-2">
+              <User className="w-4 h-4 text-blue-600" />
+              <span>Personal Information</span>
             </h3>
 
             {isEditing ? (
@@ -231,29 +248,39 @@ const Profile = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-sm">
                 <div>
-                  <span className="block text-xs font-medium text-slate-400">Full Name</span>
-                  <p className="font-semibold text-slate-800 mt-0.5">{profile?.fullName}</p>
+                  <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                    <User className="w-3 h-3" /> Full Name
+                  </span>
+                  <p className="font-semibold text-slate-800 mt-1">{profile?.fullName}</p>
                 </div>
 
                 <div>
-                  <span className="block text-xs font-medium text-slate-400">Username</span>
-                  <p className="font-semibold text-slate-800 mt-0.5 font-mono">@{profile?.userName}</p>
+                  <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                    Username
+                  </span>
+                  <p className="font-semibold text-slate-800 mt-1 font-mono">@{profile?.userName}</p>
                 </div>
 
                 <div>
-                  <span className="block text-xs font-medium text-slate-400">Phone Number</span>
-                  <p className="font-semibold text-slate-800 mt-0.5">{profile?.phone}</p>
+                  <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                    <Phone className="w-3 h-3" /> Phone Number
+                  </span>
+                  <p className="font-semibold text-slate-800 mt-1">{profile?.phone}</p>
                 </div>
 
                 <div>
-                  <span className="block text-xs font-medium text-slate-400">Email Address</span>
-                  <p className="font-semibold text-slate-800 mt-0.5">{profile?.email}</p>
+                  <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                    <Mail className="w-3 h-3" /> Email Address
+                  </span>
+                  <p className="font-semibold text-slate-800 mt-1">{profile?.email}</p>
                 </div>
 
                 {profile?.petOwner && (
                   <div className="sm:col-span-2">
-                    <span className="block text-xs font-medium text-slate-400">Residential Address</span>
-                    <p className="font-semibold text-slate-800 mt-0.5">
+                    <span className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                      <MapPin className="w-3 h-3" /> Residential Address
+                    </span>
+                    <p className="font-semibold text-slate-800 mt-1">
                       {profile.petOwner.address || 'No address provided'}
                     </p>
                   </div>
@@ -262,32 +289,36 @@ const Profile = () => {
             )}
           </div>
 
-          {/* Clinical Staff Section (Read-only as per specification) */}
+          {/* Clinical Staff Section */}
           {profile?.employee && (
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <h3 className="text-base font-semibold text-slate-800 mb-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                <span>Hospital Staff Details</span>
-                <span className="text-[11px] font-normal text-slate-400">
-                  🔒 Managed by Clinic Admin (Read-Only)
+                <span className="flex items-center gap-2">
+                  <Building className="w-4 h-4 text-blue-600" />
+                  <span>Hospital Staff Details</span>
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-normal text-slate-400">
+                  <Lock className="w-3 h-3" />
+                  Managed by Clinic Admin
                 </span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-xs text-slate-400">Employee Code</span>
                   <p className="font-mono font-semibold text-slate-800 mt-0.5">
                     {profile.employee.empCode}
                   </p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-xs text-slate-400">Department</span>
                   <p className="font-semibold text-slate-800 mt-0.5">
                     {profile.employee.department || 'N/A'}
                   </p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <span className="text-xs text-slate-400">Base Salary</span>
                   <p className="font-semibold text-slate-800 mt-0.5">
-                    {profile.employee.salary ? `${profile.employee.salary.toLocaleString()} VND` : 'N/A'}
+                    {profile.employee.salary ? `${profile.employee.salary.toLocaleString()} đ` : 'N/A'}
                   </p>
                 </div>
               </div>
@@ -307,8 +338,8 @@ const Profile = () => {
                       key={pet.id}
                       className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex items-center space-x-3"
                     >
-                      <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-lg">
-                        🐕
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                        PET
                       </div>
                       <div>
                         <h4 className="font-semibold text-slate-800 text-sm">{pet.name}</h4>
