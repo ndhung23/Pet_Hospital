@@ -2,3 +2,4 @@
 2.BackEnd: Express + Nodejs
 3.Database:PostgreSQL(supabase)
 4.Cloudfare:lưu ảnh
+5.Bảo mật: JWT

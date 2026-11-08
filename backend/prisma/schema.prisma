@@ -1,0 +1,146 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  PET_OWNER
+  RECEPTIONIST
+  VETERINARIAN
+  NURSE
+  CLINIC_MANAGER
+}
+
+enum OtpPurpose {
+  REGISTER
+  RESET_PASSWORD
+}
+
+model User {
+  id           String         @id @default(uuid()) @db.Uuid
+  userName     String         @unique @db.VarChar(50)
+  email        String         @unique @db.VarChar(100)
+  passwordHash String         @db.VarChar(255)
+  fullName     String         @db.VarChar(100)
+  phone        String         @unique @db.VarChar(15)
+  role         Role           @default(PET_OWNER)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  petOwner     PetOwner?
+  employee     Employee?
+  refreshTokens RefreshToken[]
+  aiChatLogs   AIChatLog[]
+
+  @@map("users")
+}
+
+model PetOwner {
+  userId    String   @id @db.Uuid
+  address   String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pets Pet[]
+
+  @@map("pet_owners")
+}
+
+model Employee {
+  userId     String   @id @db.Uuid
+  empCode    String   @unique @db.VarChar(30)
+  department String?  @db.VarChar(100)
+  salary     Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("employees")
+}
+
+model OtpToken {
+  id         String     @id @default(uuid()) @db.Uuid
+  email      String     @db.VarChar(100)
+  purpose    OtpPurpose
+  codeHash   String     @db.VarChar(255)
+  payload    Json?
+  expiresAt  DateTime
+  attempts   Int        @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([email, purpose])
+  @@map("otp_tokens")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique @db.VarChar(255)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Pet {
+  id             String          @id @default(uuid()) @db.Uuid
+  ownerId        String          @db.Uuid
+  name           String          @db.VarChar(100)
+  species        String          @db.VarChar(50)
+  breed          String?         @db.VarChar(100)
+  dob            DateTime?
+  gender         String?         @db.VarChar(20)
+  weight         Float?
+  history        String?         @db.Text
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  owner          PetOwner        @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
+  medicalRecords MedicalRecord[]
+  aiChatLogs     AIChatLog[]
+
+  @@index([ownerId])
+  @@map("pets")
+}
+
+model MedicalRecord {
+  id            String   @id @default(uuid()) @db.Uuid
+  petId         String   @db.Uuid
+  diagnosis     String   @db.Text
+  treatmentPlan String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  @@index([petId])
+  @@map("medical_records")
+}
+
+model AIChatLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  petId       String?  @db.Uuid
+  questionRaw String   @db.Text
+  aiResponse  String   @db.Text
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pet  Pet? @relation(fields: [petId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@map("ai_chat_logs")
+}
