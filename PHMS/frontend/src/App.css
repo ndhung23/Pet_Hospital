@@ -1,0 +1,108 @@
+
+.app {
+    min-height: 100vh;
+    background: #f4f6f9;
+    font-family: Arial, sans-serif;
+}
+
+.app-header {
+    background: #2563eb;
+    color: white;
+    padding: 25px 40px;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 25px;
+}
+
+.app-header p {
+    margin-bottom: 0;
+}
+
+.app-content {
+    max-width: 1100px;
+    margin: 35px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.pet-container h2,
+.edit-container h2 {
+    color: #1e293b;
+    margin-bottom: 25px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 13px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+
+th {
+    background: #eff6ff;
+    color: #1e40af;
+}
+
+button {
+    padding: 9px 15px;
+    margin: 3px;
+    border: none;
+    border-radius: 5px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    opacity: 0.85;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.delete-btn {
+    background: #dc2626;
+}
+
+.edit-container {
+    max-width: 600px;
+    margin: auto;
+}
+
+.edit-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.edit-container input,
+.edit-container select {
+    padding: 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 15px;
+}
+
+.form-actions {
+    margin-top: 15px;
+}
+
+.error {
+    color: #dc2626;
+}
+
+.app-footer {
+    text-align: center;
+    padding: 20px;
+    color: #64748b;
+}
