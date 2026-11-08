@@ -172,7 +172,46 @@ Keep recommendations practical and professional.`;
   };
 };
 
+/**
+ * Public quick triage consultation for visitors / unauthenticated sessions
+ */
+const consultAiGuest = async ({ message, petType = 'Pet' }) => {
+  const lowerMsg = message.toLowerCase();
+  const isCritical = CRITICAL_KEYWORDS.some((kw) => lowerMsg.includes(kw));
+
+  const systemInstruction = `You are the PHMS Veterinary AI Health Advisor for PHMS Veterinary Hospital.
+Provide compassionate, accurate, structured pet first-aid and symptom advice.
+If symptoms are critical, emphasize emergency action immediately.
+Keep recommendations practical and professional.`;
+
+  const prompt = `PATIENT TYPE: ${petType}\nQUESTION:\n${message}\n\nPlease provide guidance.`;
+
+  const aiResult = await geminiClient.generateGeminiContent({
+    prompt,
+    systemInstruction,
+  });
+
+  let fullResponse = aiResult.text;
+  if (isCritical) {
+    fullResponse +=
+      '\n\n🚨 URGENT: The symptoms mentioned may indicate a critical emergency condition. Please bring your pet to the clinic immediately or contact our 24/7 hotline 0359 928 446.';
+  }
+  fullResponse += STANDARD_DISCLAIMER;
+
+  return {
+    chatLog: {
+      id: 'guest-' + Date.now(),
+      questionRaw: message,
+      aiResponse: fullResponse,
+      createdAt: new Date().toISOString(),
+    },
+    isCritical,
+    isFallback: aiResult.isFallback,
+  };
+};
+
 module.exports = {
   getChatHistory,
   consultAi,
+  consultAiGuest,
 };

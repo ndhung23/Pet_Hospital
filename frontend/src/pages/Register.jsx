@@ -20,6 +20,7 @@ const Register = () => {
   });
 
   const [otp, setOtp] = useState('');
+  const [devOtp, setDevOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -51,17 +52,17 @@ const Register = () => {
     }
 
     if (formData.password.length < 8 || formData.password.length > 32) {
-      setError('Password must be between 8 and 32 characters long (BR-10).');
+      setError('Password must be between 8 and 32 characters long.');
       return false;
     }
 
     if (/\s/.test(formData.password)) {
-      setError('Password must not contain any spaces (BR-10).');
+      setError('Password must not contain any spaces.');
       return false;
     }
 
     if (formData.password.toLowerCase() === formData.userName.trim().toLowerCase()) {
-      setError('Password must not be identical to the username (BR-10).');
+      setError('Password must not be identical to the username.');
       return false;
     }
 
@@ -83,6 +84,9 @@ const Register = () => {
       setLoading(true);
       const res = await authService.register(formData);
       setSuccessMsg(res.message || 'OTP verification code sent to your email.');
+      if (res.data?.devOtp) {
+        setDevOtp(res.data.devOtp);
+      }
       setStep(2);
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
@@ -114,11 +118,14 @@ const Register = () => {
   const handleResendOtp = async () => {
     setError('');
     try {
-      await authService.resendOtp({
+      const res = await authService.resendOtp({
         email: formData.email,
         purpose: 'REGISTER',
       });
       setSuccessMsg('A new OTP has been dispatched to your email.');
+      if (res.data?.devOtp) {
+        setDevOtp(res.data.devOtp);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to resend OTP.');
     }
@@ -203,7 +210,7 @@ const Register = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                helperText="BR-10 compliant"
+                helperText=""
               />
 
               <Input
@@ -223,7 +230,29 @@ const Register = () => {
             </Button>
           </form>
         ) : (
-          <div className="py-2">
+          <div className="py-2 space-y-4">
+            {devOtp && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-1">
+                <p className="text-xs font-bold text-amber-800">
+                  [Dev Mode] Verification OTP: <span className="font-mono text-base tracking-widest text-amber-950 font-black">{devOtp}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOtp(devOtp)}
+                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 underline"
+                >
+                  Click to auto-fill code
+                </button>
+              </div>
+            )}
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+              <p className="font-medium text-slate-700 mb-0.5">📬 Không thấy email trong Hộp thư đến?</p>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Vui lòng kiểm tra mục <strong>Thư rác (Spam)</strong>, <strong>Quảng cáo (Promotions)</strong> hoặc <strong>Tất cả thư</strong> trong Gmail của bạn.
+              </p>
+            </div>
+
             <OtpInput
               otp={otp}
               setOtp={setOtp}
@@ -238,6 +267,7 @@ const Register = () => {
                 onClick={() => {
                   setStep(1);
                   setError('');
+                  setSuccessMsg('');
                 }}
                 className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 underline"
               >

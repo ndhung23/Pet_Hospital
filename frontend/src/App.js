@@ -1,14 +1,15 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, getRoleDashboardRoute } from './contexts/AuthContext';
-import { useAuth } from './hooks/useAuth';
+import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AiChatWidget from './components/AiChatWidget';
 
 // Auth Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import Home from './pages/Home';
 
 // App Pages
 import Profile from './pages/Profile';
@@ -21,19 +22,6 @@ import {
   ManagerDashboard,
 } from './pages/dashboards/StaffDashboards';
 
-// Root redirect component based on authentication state
-const RootRedirect = () => {
-  const { isAuthenticated, role, loading } = useAuth();
-
-  if (loading) return null;
-
-  if (isAuthenticated && role) {
-    return <Navigate to={getRoleDashboardRoute(role)} replace />;
-  }
-
-  return <Navigate to="/login" replace />;
-};
-
 function App() {
   return (
     <AuthProvider>
@@ -42,8 +30,8 @@ function App() {
           <Navbar />
           <main className="flex-1">
             <Routes>
-              {/* Root redirect */}
-              <Route path="/" element={<RootRedirect />} />
+              {/* Landing Page */}
+              <Route path="/" element={<Home />} />
 
               {/* Public Auth Routes */}
               <Route path="/login" element={<Login />} />
@@ -78,9 +66,11 @@ function App() {
               </Route>
 
               {/* Catch-all fallback */}
-              <Route path="*" element={<RootRedirect />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+          {/* Global Floating AI Assistant Widget */}
+          <AiChatWidget />
         </div>
       </BrowserRouter>
     </AuthProvider>

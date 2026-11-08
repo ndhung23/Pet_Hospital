@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { triageService } from '../../services/triageService';
+import EmergencyIntakeModal from '../../components/triage/EmergencyIntakeModal';
+import Button from '../../components/ui/Button';
+import Alert from '../../components/ui/Alert';
+import Spinner from '../../components/ui/Spinner';
 import {
   LayoutDashboard,
   Users,
@@ -21,8 +26,17 @@ import {
   CreditCard,
   ChevronRight,
   UserCheck,
+  Siren,
+  AlertTriangle,
+  Volume2,
+  VolumeX,
+  PlayCircle,
+  FileText,
 } from 'lucide-react';
 
+/* =========================================================================
+   1. CLINIC MANAGER DASHBOARD (Left 2, Right 10 Full Width)
+   ========================================================================= */
 export const ManagerDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -61,12 +75,10 @@ export const ManagerDashboard = () => {
 
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-slate-50">
-      {/* 12-Column Grid: Left 2, Right 10, Full Width */}
       <div className="grid grid-cols-12 w-full">
-        {/* ================= LEFT COLUMN: 2 COLS (Sidebar) ================= */}
+        {/* LEFT COLUMN: 2 COLS */}
         <aside className="col-span-12 lg:col-span-2 bg-white border-r border-slate-200 min-h-full p-4 flex flex-col justify-between">
           <div className="space-y-6">
-            {/* Sidebar Branding */}
             <div className="px-2 pt-2">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Clinic Admin Console
@@ -77,7 +89,6 @@ export const ManagerDashboard = () => {
               </h2>
             </div>
 
-            {/* Navigation Menu */}
             <nav className="space-y-1">
               {menuItems.map((item) => {
                 const IconComponent = item.icon;
@@ -113,7 +124,6 @@ export const ManagerDashboard = () => {
             </nav>
           </div>
 
-          {/* Bottom Admin Card */}
           <div className="pt-6 border-t border-slate-100 mt-6 px-1">
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
               <div className="flex items-center gap-2.5">
@@ -129,9 +139,8 @@ export const ManagerDashboard = () => {
           </div>
         </aside>
 
-        {/* ================= RIGHT COLUMN: 10 COLS (Content) ================= */}
+        {/* RIGHT COLUMN: 10 COLS */}
         <main className="col-span-12 lg:col-span-10 p-6 sm:p-8 space-y-8 min-h-screen">
-          {/* Top Bar / Greetings */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div>
               <div className="flex items-center gap-2">
@@ -163,7 +172,6 @@ export const ManagerDashboard = () => {
             </div>
           </div>
 
-          {/* 4 Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {stats.map((s, idx) => {
               const IconComp = s.icon;
@@ -188,9 +196,7 @@ export const ManagerDashboard = () => {
             })}
           </div>
 
-          {/* Central Grid: Staff Management Table & Recent Operational Feed */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* Staff Overview */}
             <div className="xl:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div>
@@ -207,7 +213,6 @@ export const ManagerDashboard = () => {
                 </span>
               </div>
 
-              {/* Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs sm:text-sm">
                   <thead>
@@ -270,9 +275,7 @@ export const ManagerDashboard = () => {
               </div>
             </div>
 
-            {/* Right Feed: Activity & Quick Policy Alert */}
             <div className="space-y-6">
-              {/* Activity Log */}
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
                 <h3 className="font-bold text-slate-800 text-base pb-3 border-b border-slate-100 flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -303,7 +306,6 @@ export const ManagerDashboard = () => {
                 </div>
               </div>
 
-              {/* Policy Card */}
               <div className="bg-gradient-to-tr from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 space-y-2.5">
                 <div className="flex items-center gap-2">
                   <ShieldAlert className="w-4 h-4 text-blue-800" />
@@ -329,56 +331,626 @@ export const ManagerDashboard = () => {
   );
 };
 
+/* =========================================================================
+   2. RECEPTIONIST DASHBOARD (UC-EMG-01: Emergency Walk-In Intake)
+   ========================================================================= */
 export const ReceptionDashboard = () => {
   const { user } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [queue, setQueue] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState('');
+
+  const fetchQueue = useCallback(async () => {
+    try {
+      const data = await triageService.getEmergencyQueue();
+      setQueue(data || []);
+    } catch (err) {
+      console.error('Failed to load emergency queue:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchQueue();
+    // Refresh queue every 15 seconds
+    const interval = setInterval(fetchQueue, 15000);
+    return () => clearInterval(interval);
+  }, [fetchQueue]);
+
+  const handleTriageSuccess = (newEncounter) => {
+    setNotification(
+      `🚨 Case #${newEncounter.triageRecord?.conditionLevel} admitted! Priority Ticket #${newEncounter.id.slice(-4)} assigned to Dr. ${newEncounter.veterinarian?.fullName || 'Duty Vet'}.`
+    );
+    fetchQueue();
+  };
+
+  const criticalCount = queue.filter(
+    (q) => q.triageRecord?.conditionLevel === 'LEVEL_1_CRITICAL' && q.status === 'EMERGENCY_WAITING'
+  ).length;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <Building2 className="w-5 h-5" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Banner & Emergency Walk-In Intake CTA */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800 uppercase tracking-wide">
+              Front Desk & Intake Desk
+            </span>
+            <span className="text-xs text-slate-400">Receptionist: {user?.fullName}</span>
           </div>
+          <h1 className="text-2xl font-bold text-slate-800 mt-1 flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-blue-600" />
+            <span>Emergency Triage & Patient Reception</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Evaluate walk-in condition severity, bypass standard queues, and route to duty vets.
+          </p>
+        </div>
+
+        {/* Primary CTA for EMG-01 */}
+        <Button
+          variant="danger"
+          size="lg"
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2.5 shadow-md shadow-rose-200 text-sm font-bold py-3.5 px-6 rounded-2xl"
+        >
+          <Siren className="w-5 h-5 animate-bounce" />
+          <span>+ Emergency Walk-In Intake (UC-EMG-01)</span>
+        </Button>
+      </div>
+
+      {notification && (
+        <Alert
+          type="success"
+          message={notification}
+          onClose={() => setNotification('')}
+        />
+      )}
+
+      {/* Emergency Overview Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Reception Desk & Triage Queue</h1>
-            <p className="text-sm text-slate-500">
-              Logged in as {user?.fullName} ({user?.role})
-            </p>
+            <span className="text-xs font-medium text-slate-400">Active Emergency Queue</span>
+            <div className="text-2xl font-bold text-slate-800 mt-1">{queue.length} Cases</div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <Clock className="w-5 h-5" />
           </div>
         </div>
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
-          <span>Receptionist workspace initialized. Emergency triage (UC-EMG-01) and Invoicing (UC-INV-01) modules are staged.</span>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-slate-400">Level 1 - Critical (Position #1)</span>
+            <div className="text-2xl font-bold text-rose-600 mt-1">{criticalCount} Critical</div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+            <Siren className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-slate-400">Triage Overriding Rule</span>
+            <div className="text-xs font-bold text-slate-700 mt-1.5">BR-04 Active</div>
+            <span className="text-[10px] text-slate-400 block mt-0.5">Critical cases interrupt routine</span>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <ShieldAlert className="w-5 h-5" />
+          </div>
         </div>
       </div>
+
+      {/* Live Priority Queue Table */}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+              <Activity className="w-5 h-5 text-rose-600" />
+              <span>Live Emergency Priority Queue (BR-04 Sorted)</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Patients automatically prioritized: Critical (Pos #1) → Urgent (Pos #2) → Standard (FIFO)
+            </p>
+          </div>
+          <button
+            onClick={fetchQueue}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-800 underline"
+          >
+            Refresh Queue
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="py-12 flex justify-center">
+            <Spinner size="md" />
+          </div>
+        ) : queue.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+            <p className="text-sm font-semibold text-slate-600">No active emergency cases in queue.</p>
+            <p className="text-xs">Click "+ Emergency Walk-In Intake" above when an unscheduled emergency arrives.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead>
+                <tr className="text-slate-400 border-b border-slate-100 text-[11px] uppercase tracking-wider">
+                  <th className="pb-3 font-semibold">Priority #</th>
+                  <th className="pb-3 font-semibold">Severity (BR-04)</th>
+                  <th className="pb-3 font-semibold">Patient & Owner</th>
+                  <th className="pb-3 font-semibold">Observed Symptoms</th>
+                  <th className="pb-3 font-semibold">Assigned Vet</th>
+                  <th className="pb-3 font-semibold">Status</th>
+                  <th className="pb-3 font-semibold text-right">Intake Time</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {queue.map((item) => {
+                  const level = item.triageRecord?.conditionLevel;
+                  const isCritical = level === 'LEVEL_1_CRITICAL';
+                  const isUrgent = level === 'LEVEL_2_URGENT';
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-slate-50 transition-colors ${
+                        isCritical ? 'bg-rose-50/40' : ''
+                      }`}
+                    >
+                      <td className="py-4 pr-3">
+                        <span
+                          className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs ${
+                            isCritical
+                              ? 'bg-rose-600 text-white shadow-sm'
+                              : isUrgent
+                              ? 'bg-amber-500 text-white'
+                              : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          #{item.priorityQueueNumber}
+                        </span>
+                      </td>
+
+                      <td className="py-4 pr-3">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                            isCritical
+                              ? 'bg-rose-100 text-rose-800'
+                              : isUrgent
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {isCritical && <Siren className="w-3.5 h-3.5 animate-pulse" />}
+                          {isUrgent && <AlertTriangle className="w-3.5 h-3.5" />}
+                          {level?.replace('LEVEL_', 'Level ')}
+                        </span>
+                      </td>
+
+                      <td className="py-4 pr-3">
+                        <p className="font-bold text-slate-800 text-sm">{item.pet?.name}</p>
+                        <span className="text-[11px] text-slate-500">
+                          {item.pet?.species} • Owner: {item.pet?.owner?.user?.fullName || 'Anonymous'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 pr-3 max-w-xs">
+                        <p className="text-xs text-slate-700 font-medium truncate" title={item.triageRecord?.initialSymptoms}>
+                          {item.triageRecord?.initialSymptoms}
+                        </p>
+                      </td>
+
+                      <td className="py-4 pr-3">
+                        <span className="text-xs font-semibold text-slate-800">
+                          Dr. {item.veterinarian?.fullName || 'Unassigned'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 pr-3">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            item.status === 'IN_EXAMINATION'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {item.status === 'IN_EXAMINATION' ? 'IN EXAMINATION' : 'WAITING VET'}
+                        </span>
+                      </td>
+
+                      <td className="py-4 text-right text-xs text-slate-400 font-mono">
+                        {new Date(item.triageRecord?.triageTime || item.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Modal for intake */}
+      <EmergencyIntakeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleTriageSuccess}
+      />
     </div>
   );
 };
 
+/* =========================================================================
+   3. VETERINARIAN DASHBOARD (UC-EMG-01 & BR-04 Queue Receiver)
+   ========================================================================= */
 export const VetDashboard = () => {
   const { user } = useAuth();
+  const [queue, setQueue] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [activePatient, setActivePatient] = useState(null);
+  const [acceptingId, setAcceptingId] = useState(null);
+  const [actionNotice, setActionNotice] = useState('');
+
+  const previousCriticalRef = useRef(0);
+
+  // Play audio chime for Level 1 emergency alert using Web Audio API
+  const playEmergencyAudioChime = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 alert tone
+      osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {
+      // Audio autoplay policy fallback
+    }
+  }, [soundEnabled]);
+
+  const fetchQueue = useCallback(async () => {
+    try {
+      const data = await triageService.getEmergencyQueue();
+      setQueue(data || []);
+
+      // Check if new Level 1 critical arrived
+      const criticalWaiting = (data || []).filter(
+        (q) => q.triageRecord?.conditionLevel === 'LEVEL_1_CRITICAL' && q.status === 'EMERGENCY_WAITING'
+      );
+
+      if (criticalWaiting.length > previousCriticalRef.current) {
+        playEmergencyAudioChime();
+      }
+      previousCriticalRef.current = criticalWaiting.length;
+
+      // Find if there is an ongoing IN_EXAMINATION patient
+      const inExam = (data || []).find((q) => q.status === 'IN_EXAMINATION');
+      if (inExam) {
+        setActivePatient(inExam);
+      }
+    } catch (err) {
+      console.error('Failed to load vet emergency queue:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [playEmergencyAudioChime]);
+
+  useEffect(() => {
+    fetchQueue();
+    const interval = setInterval(fetchQueue, 10000);
+    return () => clearInterval(interval);
+  }, [fetchQueue]);
+
+  const handleAcceptCase = async (appointmentId) => {
+    try {
+      setAcceptingId(appointmentId);
+      const res = await triageService.acceptEmergencyCase(appointmentId);
+      setActionNotice(
+        `Case accepted! Patient "${res.pet?.name}" is now IN_EXAMINATION in Room 1.`
+      );
+      fetchQueue();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to accept emergency case.');
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
+  const criticalWaitingList = queue.filter(
+    (q) => q.triageRecord?.conditionLevel === 'LEVEL_1_CRITICAL' && q.status === 'EMERGENCY_WAITING'
+  );
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <Stethoscope className="w-5 h-5" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Vet Bar */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wide">
+              Clinical Examination Suite
+            </span>
+            <span className="text-xs text-slate-400">Veterinarian: {user?.fullName}</span>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Veterinarian Examination Room</h1>
-            <p className="text-sm text-slate-500">
-              Logged in as {user?.fullName} ({user?.role})
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-800 mt-1 flex items-center gap-2">
+            <Stethoscope className="w-6 h-6 text-emerald-600" />
+            <span>Emergency Queue & Clinical Intake</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+            Real-time emergency triage dispatcher conforming to BR-04 priority overriding rules.
+          </p>
         </div>
-        <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span>Clinical examination & EMR encounter management workspace ready.</span>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl border transition-colors ${
+              soundEnabled
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                : 'border-slate-300 bg-slate-100 text-slate-500'
+            }`}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            <span>{soundEnabled ? 'Alert Chime: ON' : 'Alert Chime: OFF'}</span>
+          </button>
+
+          <button
+            onClick={fetchQueue}
+            className="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {actionNotice && (
+        <Alert
+          type="success"
+          message={actionNotice}
+          onClose={() => setActionNotice('')}
+        />
+      )}
+
+      {/* CRITICAL POPUP BANNER (Workflow 5, Step 9: Siren + Banner on Vet Dashboard) */}
+      {criticalWaitingList.length > 0 && (
+        <div className="bg-gradient-to-r from-rose-600 via-rose-700 to-red-800 text-white p-5 rounded-3xl shadow-lg shadow-rose-200 flex flex-col sm:flex-row items-center justify-between gap-4 animate-bounce">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Siren className="w-7 h-7 text-white animate-spin" />
+            </div>
+            <div>
+              <div className="text-xs font-black uppercase tracking-widest text-rose-200">
+                CRITICAL EMERGENCY ALERT (BR-04 POSITION #1)
+              </div>
+              <h3 className="text-base sm:text-lg font-bold">
+                {criticalWaitingList.length} Critical Patient(s) awaiting immediate resuscitation!
+              </h3>
+              <p className="text-xs text-rose-100 mt-0.5">
+                Ongoing routine consultations must be interrupted to admit Level 1 emergency patient immediately.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => handleAcceptCase(criticalWaitingList[0].id)}
+            isLoading={acceptingId === criticalWaitingList[0].id}
+            className="flex-shrink-0 font-bold text-rose-700 bg-white hover:bg-rose-50"
+          >
+            Accept Patient #{criticalWaitingList[0].pet?.name} →
+          </Button>
+        </div>
+      )}
+
+      {/* Grid: Active Patient In Examination vs Emergency Queue List */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Active Patient Encounter */}
+        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <h3 className="font-bold text-slate-800 text-base flex items-center justify-between pb-3 border-b border-slate-100">
+            <span className="flex items-center gap-2">
+              <PlayCircle className="w-5 h-5 text-emerald-600" />
+              <span>Current Examination Patient</span>
+            </span>
+            {activePatient && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 animate-pulse">
+                IN EXAMINATION
+              </span>
+            )}
+          </h3>
+
+          {activePatient ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-lg font-bold text-slate-900">{activePatient.pet?.name}</h4>
+                    <p className="text-xs text-slate-500">
+                      {activePatient.pet?.species} • {activePatient.pet?.breed || 'Standard'}
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold px-2 py-1 rounded bg-rose-100 text-rose-800">
+                    {activePatient.triageRecord?.conditionLevel}
+                  </span>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-emerald-200/60 text-xs text-slate-700 space-y-1">
+                  <p>
+                    <span className="font-semibold">Symptoms:</span>{' '}
+                    {activePatient.triageRecord?.initialSymptoms}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Admitted:</span>{' '}
+                    {new Date(activePatient.triageRecord?.triageTime).toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                <p className="font-semibold text-slate-800 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>Next Clinical Action:</span>
+                </p>
+                <p>Record vital signs (Temperature, Weight, Heart Rate) and conduct examination per UC-EMR-01.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="py-12 text-center text-slate-400 space-y-2">
+              <Stethoscope className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="text-xs font-medium text-slate-500">No active patient currently in examination.</p>
+              <p className="text-[11px]">Select a patient from the emergency queue on the right to start examination.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Priority Emergency Queue (2 cols on xl) */}
+        <div className="xl:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                <Activity className="w-5 h-5 text-rose-600" />
+                <span>Priority Emergency Queue (BR-04)</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Evaluated walk-in emergency tickets sorted by condition level
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700">
+              {queue.length} Active Tickets
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="py-12 flex justify-center">
+              <Spinner size="md" />
+            </div>
+          ) : queue.length === 0 ? (
+            <div className="py-12 text-center text-slate-400">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-slate-600">No patients waiting in queue.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {queue.map((item) => {
+                const level = item.triageRecord?.conditionLevel;
+                const isCritical = level === 'LEVEL_1_CRITICAL';
+                const isUrgent = level === 'LEVEL_2_URGENT';
+                const isBeingExamined = item.status === 'IN_EXAMINATION';
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                      isCritical
+                        ? 'border-rose-300 bg-rose-50/50 shadow-sm'
+                        : isUrgent
+                        ? 'border-amber-200 bg-amber-50/40'
+                        : 'border-slate-200 bg-slate-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm flex-shrink-0 ${
+                          isCritical
+                            ? 'bg-rose-600 text-white shadow-sm'
+                            : isUrgent
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-slate-200 text-slate-700'
+                        }`}
+                      >
+                        #{item.priorityQueueNumber}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-slate-900 text-base">{item.pet?.name}</h4>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              isCritical
+                                ? 'bg-rose-100 text-rose-800'
+                                : isUrgent
+                                ? 'bg-amber-100 text-amber-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
+                            {level?.replace('LEVEL_', 'Level ')}
+                          </span>
+                          {isBeingExamined && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              IN EXAM
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {item.pet?.species} • Weight: {item.pet?.weight || '?'} kg • Owner:{' '}
+                          {item.pet?.owner?.user?.fullName || 'Anonymous'}
+                        </p>
+
+                        <p className="text-xs text-slate-700 mt-1.5 font-medium leading-relaxed bg-white/70 p-2 rounded-lg border border-slate-100">
+                          <span className="font-semibold text-rose-700">Symptoms:</span>{' '}
+                          {item.triageRecord?.initialSymptoms}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 flex-shrink-0">
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        {new Date(item.triageRecord?.triageTime || item.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+
+                      {!isBeingExamined ? (
+                        <Button
+                          variant={isCritical ? 'danger' : 'primary'}
+                          size="sm"
+                          isLoading={acceptingId === item.id}
+                          onClick={() => handleAcceptCase(item.id)}
+                          className="flex items-center gap-1.5 text-xs font-bold"
+                        >
+                          <PlayCircle className="w-3.5 h-3.5" />
+                          <span>Start Examination</span>
+                        </Button>
+                      ) : (
+                        <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Active in Room</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
+/* =========================================================================
+   4. INPATIENT & LABORATORY DASHBOARD
+   ========================================================================= */
 export const LabDashboard = () => {
   const { user } = useAuth();
   return (
@@ -397,7 +969,7 @@ export const LabDashboard = () => {
         </div>
         <div className="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-sm text-indigo-800 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-          <span>Paraclinical lab orders & inpatient nursing care queue.</span>
+          <span>Paraclinical lab orders & inpatient nursing care queue (UC-LAB-01 / UC-LAB-02).</span>
         </div>
       </div>
     </div>

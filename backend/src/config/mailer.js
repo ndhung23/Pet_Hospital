@@ -29,6 +29,9 @@ const sendMail = async ({ to, subject, html, text }) => {
         html,
       });
       console.log(`[Email Service] Sent email to ${to}: ${info.messageId}`);
+      if (env.NODE_ENV === 'development') {
+        console.log(`[Email Service DEV LOG] To: ${to} | Content:\n${text}`);
+      }
       return { success: true, messageId: info.messageId };
     } catch (error) {
       console.error(`[Email Service] Failed to send email via SMTP to ${to}:`, error.message);

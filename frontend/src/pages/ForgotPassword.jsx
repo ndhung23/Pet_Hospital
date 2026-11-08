@@ -10,6 +10,7 @@ const ForgotPassword = () => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
+  const [devOtp, setDevOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -32,6 +33,9 @@ const ForgotPassword = () => {
       setLoading(true);
       const res = await authService.forgotPassword({ email: email.trim() });
       setSuccessMsg(res.message || 'OTP code sent to your email.');
+      if (res.data?.devOtp) {
+        setDevOtp(res.data.devOtp);
+      }
       setStep(2);
     } catch (err) {
       const msg = err.response?.data?.message || 'Failed to dispatch reset code.';
@@ -131,6 +135,28 @@ const ForgotPassword = () => {
           </form>
         ) : (
           <form onSubmit={handleResetSubmit} className="space-y-4">
+            {devOtp && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center space-y-1">
+                <p className="text-xs font-bold text-amber-800">
+                  [Dev Mode] Verification OTP: <span className="font-mono text-base tracking-widest text-amber-950 font-black">{devOtp}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOtp(devOtp)}
+                  className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 underline"
+                >
+                  Click to auto-fill code
+                </button>
+              </div>
+            )}
+
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+              <p className="font-medium text-slate-700 mb-0.5">📬 Không thấy email trong Hộp thư đến?</p>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Vui lòng kiểm tra mục <strong>Thư rác (Spam)</strong>, <strong>Quảng cáo (Promotions)</strong> hoặc <strong>Tất cả thư</strong> trong Gmail.
+              </p>
+            </div>
+
             <Input
               id="otp"
               label="6-Digit OTP Code"
