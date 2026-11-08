@@ -28,6 +28,14 @@ const env = {
 
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
+
+  // VNPay sandbox (UC-BILL-01). Leave blank to disable the VNPay lane; the
+  // cash lane keeps working without it.
+  VNPAY_TMN_CODE: process.env.VNPAY_TMN_CODE || '',
+  VNPAY_HASH_SECRET: process.env.VNPAY_HASH_SECRET || '',
+  VNPAY_URL: process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html',
+  VNPAY_RETURN_URL: process.env.VNPAY_RETURN_URL || 'http://localhost:5000/api/billing/vnpay/return',
+  VNPAY_API_URL: process.env.VNPAY_API_URL || 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction',
 };
 
 module.exports = env;

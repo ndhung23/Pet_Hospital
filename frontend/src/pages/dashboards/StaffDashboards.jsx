@@ -1,7 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { triageService } from '../../services/triageService';
+import { hrService } from '../../services/hrService';
 import EmergencyIntakeModal from '../../components/triage/EmergencyIntakeModal';
+import RosterManager from '../../components/hr/RosterManager';
+import LeaveApprovalQueue from '../../components/hr/LeaveApprovalQueue';
+import MyLeaveRequests from '../../components/hr/MyLeaveRequests';
+import BillingQueue from '../../components/billing/BillingQueue';
 import Button from '../../components/ui/Button';
 import Alert from '../../components/ui/Alert';
 import Spinner from '../../components/ui/Spinner';
@@ -40,6 +45,22 @@ import {
 export const ManagerDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [pendingLeaves, setPendingLeaves] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    hrService
+      .getLeaveRequests('PENDING')
+      .then((rows) => {
+        if (!cancelled) setPendingLeaves(Array.isArray(rows) ? rows.length : 0);
+      })
+      .catch(() => {
+        if (!cancelled) setPendingLeaves(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab]);
 
   const stats = [
     { title: 'Total Registered Users', value: '1,280', change: '+12% this month', icon: Users, color: 'text-blue-600 bg-blue-50' },
@@ -67,7 +88,7 @@ export const ManagerDashboard = () => {
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'staff', label: 'Staff & Personnel', icon: Users },
     { id: 'schedules', label: 'Duty Shifts & Roster', icon: CalendarDays },
-    { id: 'leaves', label: 'Leave Requests', icon: FileSpreadsheet, badge: '2 pending' },
+    { id: 'leaves', label: 'Leave Requests', icon: FileSpreadsheet, badge: pendingLeaves > 0 ? `${pendingLeaves} pending` : null },
     { id: 'services', label: 'Services & Pharmacy', icon: Pill },
     { id: 'reports', label: 'Analytics & Invoices', icon: TrendingUp },
     { id: 'settings', label: 'System Settings', icon: Settings },
@@ -141,6 +162,15 @@ export const ManagerDashboard = () => {
 
         {/* RIGHT COLUMN: 10 COLS */}
         <main className="col-span-12 lg:col-span-10 p-6 sm:p-8 space-y-8 min-h-screen">
+          {activeTab === 'schedules' && <RosterManager />}
+          {activeTab === 'leaves' && <LeaveApprovalQueue />}
+          {activeTab === 'reports' && <BillingQueue />}
+
+          {(activeTab === 'overview' ||
+            activeTab === 'staff' ||
+            activeTab === 'services' ||
+            activeTab === 'settings') && (
+            <>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
             <div>
               <div className="flex items-center gap-2">
@@ -317,14 +347,19 @@ export const ManagerDashboard = () => {
                   When approving a staff member's leave request, the system automatically locks all corresponding shift slots, preventing new outpatient bookings.
                 </p>
                 <div className="pt-2">
-                  <button className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 underline">
-                    <span>Review Pending Leaves (2)</span>
+                  <button
+                    onClick={() => setActiveTab('leaves')}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:text-blue-900 underline"
+                  >
+                    <span>Review Pending Leaves</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             </div>
           </div>
+            </>
+          )}
         </main>
       </div>
     </div>
@@ -340,6 +375,7 @@ export const ReceptionDashboard = () => {
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState('');
+  const [activeTab, setActiveTab] = useState('triage');
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -372,6 +408,37 @@ export const ReceptionDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Desk navigation */}
+      <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm w-fit">
+        {[
+          { id: 'triage', label: 'Emergency Triage', icon: Siren },
+          { id: 'billing', label: 'Billing & Payments', icon: CreditCard },
+          { id: 'leave', label: 'My Leave', icon: FileSpreadsheet },
+        ].map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                isActive
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <TabIcon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === 'billing' && <BillingQueue />}
+      {activeTab === 'leave' && <MyLeaveRequests />}
+
+      {activeTab === 'triage' && (
+        <>
       {/* Top Banner & Emergency Walk-In Intake CTA */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -583,6 +650,8 @@ export const ReceptionDashboard = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleTriageSuccess}
       />
+        </>
+      )}
     </div>
   );
 };
@@ -598,6 +667,7 @@ export const VetDashboard = () => {
   const [activePatient, setActivePatient] = useState(null);
   const [acceptingId, setAcceptingId] = useState(null);
   const [actionNotice, setActionNotice] = useState('');
+  const [vetTab, setVetTab] = useState('queue');
 
   const previousCriticalRef = useRef(0);
 
@@ -680,6 +750,33 @@ export const VetDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Vet navigation */}
+      <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm w-fit">
+        {[
+          { id: 'queue', label: 'Emergency Queue', icon: Siren },
+          { id: 'leave', label: 'My Leave', icon: FileSpreadsheet },
+        ].map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = vetTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setVetTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                isActive ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <TabIcon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {vetTab === 'leave' && <MyLeaveRequests />}
+
+      {vetTab === 'queue' && (
+        <>
       {/* Top Vet Bar */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -942,8 +1039,10 @@ export const VetDashboard = () => {
               })}
             </div>
           )}
-        </div>
       </div>
+      </div>
+        </>
+      )}
     </div>
   );
 };
@@ -953,8 +1052,33 @@ export const VetDashboard = () => {
    ========================================================================= */
 export const LabDashboard = () => {
   const { user } = useAuth();
+  const [labTab, setLabTab] = useState('overview');
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm w-fit mb-6">
+        {[
+          { id: 'overview', label: 'Lab Overview', icon: FlaskConical },
+          { id: 'leave', label: 'My Leave', icon: FileSpreadsheet },
+        ].map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = labTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setLabTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <TabIcon className="w-3.5 h-3.5" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {labTab === 'leave' && <MyLeaveRequests />}
+      {labTab === 'overview' && (
+        <>
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -972,6 +1096,8 @@ export const LabDashboard = () => {
           <span>Paraclinical lab orders & inpatient nursing care queue (UC-LAB-01 / UC-LAB-02).</span>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };

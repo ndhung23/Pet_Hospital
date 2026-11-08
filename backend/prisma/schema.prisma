@@ -63,6 +63,18 @@ model User {
   triageRecords          TriageRecord[]  @relation("ReceptionistTriageRecords")
   examinedMedicalRecords MedicalRecord[] @relation("VeterinarianMedicalRecords")
 
+  // HR module (UC-HR-01, UC-HR-02, UC-HR-03)
+  shifts                 WorkShift[]     @relation("StaffShifts")
+  shiftsCreated          WorkShift[]     @relation("CreatedShifts")
+  publishedRosters       RosterWeek[]    @relation("PublishedRosters")
+  leaveRequests          LeaveRequest[]  @relation("StaffLeaveRequests")
+  leaveReviews           LeaveRequest[]  @relation("ReviewedLeaveRequests")
+
+  // Billing module (UC-BILL-01, UC-BILL-02)
+  invoicesOwned          Invoice[]       @relation("OwnerInvoices")
+  invoicesCreated        Invoice[]       @relation("CreatedInvoices")
+  paymentsCollected      Payment[]       @relation("CollectedPayments")
+
   @@map("users")
 }
 
@@ -137,6 +149,7 @@ model Pet {
   medicalRecords MedicalRecord[]
   aiChatLogs     AIChatLog[]
   appointments   Appointment[]
+  invoices       Invoice[]
 
   @@index([ownerId])
   @@map("pets")
@@ -161,6 +174,11 @@ model MedicalRecord {
   pet          Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
   appointment  Appointment? @relation(fields: [appId], references: [id], onDelete: SetNull)
   veterinarian User?        @relation("VeterinarianMedicalRecords", fields: [vetId], references: [id], onDelete: SetNull)
+
+  // Downstream clinical artefacts feeding the invoice (UC-BILL-01)
+  prescription Prescription?
+  labOrders    LabOrder[]
+  invoice      Invoice?
 
   @@index([petId])
   @@index([appId])
@@ -224,4 +242,321 @@ model TriageRecord {
   @@index([recepId])
   @@index([conditionLevel])
   @@map("triage_records")
+}
+
+/* =========================================================================
+   HR MODULE — UC-HR-01 (Roster), UC-HR-02 (Leave Request), UC-HR-03 (Approve)
+   ========================================================================= */
+
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum LeaveType {
+  SICK
+  PERSONAL
+  VACATION
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+/// One row per clinic working week. Publishing flips isPublished, which is what
+/// opens that week's slots for booking (UC-HR-01 POST-2).
+model RosterWeek {
+  id          String    @id @default(uuid()) @db.Uuid
+  weekStart   DateTime  @unique @db.Date
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  publishedBy String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  publisher User?       @relation("PublishedRosters", fields: [publishedBy], references: [id], onDelete: SetNull)
+  shifts    WorkShift[]
+
+  @@index([weekStart])
+  @@map("roster_weeks")
+}
+
+/// A single duty assignment. UNIQUE(userId, date, shiftType) is the database-level
+/// guard against double-booking the same person into the same shift twice.
+model WorkShift {
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @db.Uuid
+  weekId     String?     @db.Uuid
+  date       DateTime    @db.Date
+  shiftType  ShiftType
+  status     ShiftStatus @default(SCHEDULED)
+  roomOrDesk String?     @db.VarChar(50)
+  notes      String?     @db.Text
+  createdBy  String?     @db.Uuid
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  user    User        @relation("StaffShifts", fields: [userId], references: [id], onDelete: Cascade)
+  creator User?       @relation("CreatedShifts", fields: [createdBy], references: [id], onDelete: SetNull)
+  week    RosterWeek? @relation(fields: [weekId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, date, shiftType])
+  @@index([date])
+  @@index([shiftType])
+  @@index([userId])
+  @@index([weekId])
+  @@map("work_shifts")
+}
+
+/// UC-HR-02 / UC-HR-03. Approving a request locks the matching WorkShift rows
+/// (BR-03) and flags any pre-booked appointments that the absence disrupts.
+model LeaveRequest {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  startDate       DateTime    @db.Date
+  endDate         DateTime    @db.Date
+  leaveType       LeaveType
+  reason          String      @db.Text
+  status          LeaveStatus @default(PENDING)
+  reviewedBy      String?     @db.Uuid
+  reviewedAt      DateTime?
+  rejectionReason String?     @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  user     User  @relation("StaffLeaveRequests", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("ReviewedLeaveRequests", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@map("leave_requests")
+}
+
+/* =========================================================================
+   BILLING MODULE — UC-BILL-01 (Consolidate & Pay), UC-BILL-02 (View Detail)
+   ========================================================================= */
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+enum InvoiceItemType {
+  CONSULTATION
+  LAB
+  DRUG
+}
+
+enum PaymentMethod {
+  CASH
+  VNPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+/// Price catalogue for consultation services. Snapshot into InvoiceItem at
+/// billing time so a later price change never rewrites a settled invoice (BR-05).
+model Service {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(150)
+  category  String?  @db.VarChar(50)
+  unitPrice Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@map("services")
+}
+
+/// Pharmacy catalogue. stockQty is decremented when an invoice settles (BR-09).
+model Drug {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(150)
+  unit      String   @db.VarChar(30)
+  unitPrice Int
+  stockQty  Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prescriptionItems PrescriptionItem[]
+
+  @@index([isActive])
+  @@map("drugs")
+}
+
+/// Paraclinical test catalogue.
+model LabTest {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(150)
+  unitPrice Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orderItems LabOrderItem[]
+
+  @@index([isActive])
+  @@map("lab_tests")
+}
+
+/// UC-PRES-01 output. One prescription per encounter; items carry the drugs.
+model Prescription {
+  id        String   @id @default(uuid()) @db.Uuid
+  recordId  String   @unique @db.Uuid
+  vetId     String?  @db.Uuid
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  record MedicalRecord      @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  items  PrescriptionItem[]
+
+  @@map("prescriptions")
+}
+
+model PrescriptionItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  prescriptionId String   @db.Uuid
+  drugId         String   @db.Uuid
+  quantity       Int
+  dosage         String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
+
+  prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  drug         Drug         @relation(fields: [drugId], references: [id], onDelete: Restrict)
+
+  @@index([prescriptionId])
+  @@index([drugId])
+  @@map("prescription_items")
+}
+
+/// UC-LAB-01 output, consumed by UC-LAB-02.
+model LabOrder {
+  id        String   @id @default(uuid()) @db.Uuid
+  recordId  String   @db.Uuid
+  vetId     String?  @db.Uuid
+  status    String   @default("ORDERED") @db.VarChar(30)
+  urgency   String   @default("ROUTINE") @db.VarChar(20)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  record MedicalRecord  @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  items  LabOrderItem[]
+
+  @@index([recordId])
+  @@map("lab_orders")
+}
+
+model LabOrderItem {
+  id         String   @id @default(uuid()) @db.Uuid
+  labOrderId String   @db.Uuid
+  labTestId  String   @db.Uuid
+  quantity   Int      @default(1)
+  resultText String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  labOrder LabOrder @relation(fields: [labOrderId], references: [id], onDelete: Cascade)
+  labTest  LabTest  @relation(fields: [labTestId], references: [id], onDelete: Restrict)
+
+  @@index([labOrderId])
+  @@index([labTestId])
+  @@map("lab_order_items")
+}
+
+/// One consolidated invoice per medical encounter. recordId is UNIQUE, which is
+/// what makes buildInvoice idempotent (re-billing returns the same invoice).
+model Invoice {
+  id         String        @id @default(uuid()) @db.Uuid
+  code       String        @unique @db.VarChar(30)
+  recordId   String        @unique @db.Uuid
+  petId      String        @db.Uuid
+  ownerId    String        @db.Uuid
+  createdBy  String?       @db.Uuid
+  subtotal   Int
+  discount   Int           @default(0)
+  total      Int
+  status     InvoiceStatus @default(UNPAID)
+  paidAt     DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  record  MedicalRecord   @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  pet     Pet             @relation(fields: [petId], references: [id], onDelete: Cascade)
+  owner   User            @relation("OwnerInvoices", fields: [ownerId], references: [id], onDelete: Cascade)
+  creator User?           @relation("CreatedInvoices", fields: [createdBy], references: [id], onDelete: SetNull)
+  items   InvoiceItem[]
+  payments Payment[]
+
+  @@index([status])
+  @@index([ownerId])
+  @@index([petId])
+  @@index([createdAt])
+  @@map("invoices")
+}
+
+/// Line item snapshot. refId points at the Service / LabTest / Drug row the price
+/// came from, but unitPrice and amount are frozen copies (BR-05).
+model InvoiceItem {
+  id          String          @id @default(uuid()) @db.Uuid
+  invoiceId   String          @db.Uuid
+  type        InvoiceItemType
+  refId       String?         @db.Uuid
+  description String          @db.VarChar(200)
+  unitPrice   Int
+  quantity    Int
+  amount      Int
+  createdAt   DateTime        @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+/// Cash or VNPay settlement attempt. txnRef is UNIQUE so a repeated VNPay IPN
+/// callback cannot settle the same invoice twice (NF-08).
+model Payment {
+  id             String        @id @default(uuid()) @db.Uuid
+  invoiceId      String        @db.Uuid
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  txnRef         String        @unique @db.VarChar(64)
+  amount         Int
+  receivedAmount Int?
+  changeAmount   Int?
+  vnpTransactionNo String?     @db.VarChar(50)
+  vnpResponseCode  String?     @db.VarChar(10)
+  collectedBy    String?       @db.Uuid
+  paidAt         DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  collector User?   @relation("CollectedPayments", fields: [collectedBy], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+  @@index([status])
+  @@map("payments")
 }
