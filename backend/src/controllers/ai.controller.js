@@ -31,7 +31,24 @@ const askAi = async (req, res, next) => {
   }
 };
 
+/**
+ * Public AI consultation for visitors
+ */
+const publicAskAi = async (req, res, next) => {
+  try {
+    const { message, petType } = req.body;
+    const result = await aiService.consultAiGuest({
+      message,
+      petType,
+    });
+    return successResponse(res, 200, 'AI consultation completed', result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getHistory,
   askAi,
+  publicAskAi,
 };

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AiChatWidget from './components/AiChatWidget';
 
 // Auth Pages
 import Login from './pages/Login';
@@ -68,6 +69,8 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
+          {/* Global Floating AI Assistant Widget */}
+          <AiChatWidget />
         </div>
       </BrowserRouter>
     </AuthProvider>

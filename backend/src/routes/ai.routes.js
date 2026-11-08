@@ -7,8 +7,11 @@ const { askAiSchema } = require('../validators/ai.validator');
 
 const router = express.Router();
 
-// UC-AI-01: Only Authenticated Pet Owners can consult the Gemini AI Advisor
-router.use(authenticate, authorize('PET_OWNER'));
+// Public endpoint for Landing Page / Guest quick triage
+router.post('/public', validate(askAiSchema), aiController.publicAskAi);
+
+// UC-AI-01: Authenticated AI Consultation with Pet Clinical History
+router.use(authenticate, authorize('PET_OWNER', 'VETERINARIAN', 'RECEPTIONIST', 'CLINIC_MANAGER', 'NURSE'));
 
 router.get('/chat', aiController.getHistory);
 router.post('/chat', validate(askAiSchema), aiController.askAi);

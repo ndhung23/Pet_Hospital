@@ -3,8 +3,16 @@ const env = require('../config/env');
 const FALLBACK_MESSAGE =
   'AI Health Advisor is temporarily busy. Please try again or contact our clinic hotline directly for urgent pet care.';
 
+// Models ordered by priority and reliability
+const CANDIDATE_MODELS = [
+  env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-3.8-flash',
+];
+
 /**
- * Call external Google Gemini API with strict 8-second timeout watchdog (NF-01)
+ * Call external Google Gemini API with fallback models and strict 8-second watchdog (NF-01)
  */
 const generateGeminiContent = async ({ prompt, systemInstruction = '' }) => {
   if (!env.GEMINI_API_KEY) {
@@ -20,56 +28,65 @@ const generateGeminiContent = async ({ prompt, systemInstruction = '' }) => {
   // NF-01: AI-assisted requests shall return a response or timeout within 8 seconds
   const timeoutId = setTimeout(() => controller.abort(), 8000);
 
+  // De-duplicate candidate model names while keeping order
+  const modelsToTry = [...new Set(CANDIDATE_MODELS)];
+
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${env.GEMINI_MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
+    for (const model of modelsToTry) {
+      if (controller.signal.aborted) break;
 
-    const requestBody = {
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }],
-        },
-      ],
-    };
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.GEMINI_API_KEY}`;
 
-    if (systemInstruction) {
-      requestBody.systemInstruction = {
-        parts: [{ text: systemInstruction }],
-      };
+        const requestBody = {
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+        };
+
+        if (systemInstruction) {
+          requestBody.systemInstruction = {
+            parts: [{ text: systemInstruction }],
+          };
+        }
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.warn(`[Gemini Client] Model ${model} returned ${response.status}, attempting fallback...`, errText.substring(0, 120));
+          continue;
+        }
+
+        const data = await response.json();
+        const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text || null;
+
+        if (candidateText && candidateText.trim()) {
+          clearTimeout(timeoutId);
+          return {
+            text: candidateText.trim(),
+            isFallback: false,
+            modelUsed: model,
+          };
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') throw err;
+        console.warn(`[Gemini Client] Attempt with model ${model} failed:`, err.message);
+      }
     }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-      signal: controller.signal,
-    });
 
     clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error(`[Gemini Client] Gemini API returned status ${response.status}:`, errText);
-      return {
-        text: FALLBACK_MESSAGE,
-        isFallback: true,
-      };
-    }
-
-    const data = await response.json();
-    const candidateText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text || null;
-
-    if (!candidateText) {
-      return {
-        text: FALLBACK_MESSAGE,
-        isFallback: true,
-      };
-    }
-
     return {
-      text: candidateText.trim(),
-      isFallback: false,
+      text: FALLBACK_MESSAGE,
+      isFallback: true,
     };
   } catch (error) {
     clearTimeout(timeoutId);
