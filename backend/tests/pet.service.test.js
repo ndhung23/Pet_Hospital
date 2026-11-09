@@ -1,3 +1,12 @@
+/**
+ * File: pet.service.test.js
+ * Module: PetService Unit Tests
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Jest automated tests verifying UC-PET-01, 02, 03, 04 and validation exceptions (Exception 4.0.E1).
+ */
+
 const petService = require('../src/services/PetService');
 const petRepository = require('../src/repositories/PetRepository');
 

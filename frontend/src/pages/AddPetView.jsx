@@ -1,3 +1,12 @@
+/**
+ * File: AddPetView.jsx
+ * Module: Add Pet Profile View (UC-PET-01)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: React form for registering new pet profiles with field-by-field validation feedback (Exception 4.0.E1).
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import petService from '../services/petService';

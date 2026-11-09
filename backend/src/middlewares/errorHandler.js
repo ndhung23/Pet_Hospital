@@ -1,3 +1,12 @@
+/**
+ * File: errorHandler.js
+ * Module: Centralized Error Handler
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Global error handler formatting unified error responses with HTTP status, code, message, and details.
+ */
+
 const env = require('../config/env');
 
 /**

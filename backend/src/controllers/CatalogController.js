@@ -1,3 +1,12 @@
+/**
+ * File: CatalogController.js
+ * Module: Service Catalog (Supporting UC-BOOK-01)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Controller handling HTTP requests for care & medical services tailored to pet species and size.
+ */
+
 const catalogService = require('../services/CatalogService');
 
 class CatalogController {

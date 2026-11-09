@@ -1,3 +1,12 @@
+/**
+ * File: PetListView.jsx
+ * Module: Pet List View (UC-PET-04, UC-PET-02, UC-PET-03)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: React view listing registered pets with inline edit modal (UC-PET-02) and soft-delete confirmation (UC-PET-03).
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import petService from '../services/petService';

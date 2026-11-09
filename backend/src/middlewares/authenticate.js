@@ -1,3 +1,12 @@
+/**
+ * File: authenticate.js
+ * Module: Authentication Middleware (RBAC & Simulation)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Handles JWT authentication and supports simulated header authentication (x-user-id, x-user-role).
+ */
+
 const jwt = require('jsonwebtoken');
 const env = require('../config/env');
 const prisma = require('../config/prisma');

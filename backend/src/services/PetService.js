@@ -1,3 +1,12 @@
+/**
+ * File: PetService.js
+ * Module: Pet Business Logic (UC-PET-01, UC-PET-02, UC-PET-03, UC-PET-04)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Implements pet validations (Exception 4.0.E1), ownership verification, and pet profile management.
+ */
+
 const petRepository = require('../repositories/PetRepository');
 const AppError = require('../utils/AppError');
 

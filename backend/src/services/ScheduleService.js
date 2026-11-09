@@ -1,3 +1,12 @@
+/**
+ * File: ScheduleService.js
+ * Module: Duty Rosters & 30-min Slot Generation (Supporting UC-BOOK-01, UC-BOOK-04)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Manages duty rosters, 30-min consultation slots (08:00 - 17:00), and Alternative Flow 1.1.
+ */
+
 const scheduleRepository = require('../repositories/ScheduleRepository');
 
 class ScheduleService {

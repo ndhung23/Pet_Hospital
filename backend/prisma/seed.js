@@ -1,3 +1,12 @@
+/**
+ * File: seed.js
+ * Module: Database Seed Script
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Seeds initial test accounts, care services, duty rosters, and sample appointments for CRUD testing.
+ */
+
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 

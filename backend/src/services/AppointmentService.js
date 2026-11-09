@@ -1,3 +1,12 @@
+/**
+ * File: AppointmentService.js
+ * Module: Appointment Business Logic (UC-BOOK-01, UC-BOOK-03, UC-BOOK-04, UC-BOOK-05)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Implements business rules BR-02 (2h-30d window), BR-06 (2h cancellation/reschedule limit), and slot conflict checks.
+ */
+
 const appointmentRepository = require('../repositories/AppointmentRepository');
 const emailService = require('./EmailService');
 const scheduleService = require('./ScheduleService');

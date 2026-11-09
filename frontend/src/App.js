@@ -1,3 +1,12 @@
+/**
+ * File: App.js
+ * Module: Frontend Application Root & Routing
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Root React router configuring protected routes for appointment and pet CRUD views.
+ */
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, getRoleDashboardRoute } from './contexts/AuthContext';

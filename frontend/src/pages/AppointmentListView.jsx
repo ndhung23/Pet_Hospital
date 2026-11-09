@@ -1,3 +1,12 @@
+/**
+ * File: AppointmentListView.jsx
+ * Module: Appointment List View (UC-BOOK-05, UC-BOOK-03, UC-BOOK-04)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: React view displaying appointments, cancellation dialog (UC-BOOK-03), and reschedule modal (UC-BOOK-04).
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import appointmentService from '../services/appointmentService';

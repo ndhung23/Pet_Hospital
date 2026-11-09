@@ -1,3 +1,12 @@
+/**
+ * File: AppointmentController.js
+ * Module: Appointment Management (UC-BOOK-01, UC-BOOK-03, UC-BOOK-04, UC-BOOK-05)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Controller handling HTTP requests and responses for appointment operations (create, cancel, reschedule, list).
+ */
+
 const appointmentService = require('../services/AppointmentService');
 
 class AppointmentController {

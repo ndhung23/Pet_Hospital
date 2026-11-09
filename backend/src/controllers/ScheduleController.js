@@ -1,3 +1,12 @@
+/**
+ * File: ScheduleController.js
+ * Module: Duty Rosters & Open Slots (Supporting UC-BOOK-01, UC-BOOK-04)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Controller handling HTTP requests for duty veterinarians, dates, and 30-minute consultation slots.
+ */
+
 const scheduleService = require('../services/ScheduleService');
 
 class ScheduleController {

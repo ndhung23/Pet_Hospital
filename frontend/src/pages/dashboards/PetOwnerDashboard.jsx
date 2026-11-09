@@ -1,3 +1,12 @@
+/**
+ * File: PetOwnerDashboard.jsx
+ * Module: Pet Owner Dashboard View
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Portal landing page with quick action cards for booking, managing appointments, and pets.
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';

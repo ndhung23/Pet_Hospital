@@ -1,3 +1,12 @@
+/**
+ * File: petService.js
+ * Module: Pet API Client Service
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Frontend HTTP client functions for pet CRUD endpoints.
+ */
+
 import apiClient from './apiClient';
 
 export const petService = {

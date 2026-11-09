@@ -1,3 +1,12 @@
+/**
+ * File: Navbar.jsx
+ * Module: Navigation Bar Component
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Top navigation bar including direct links to Pets, Appointments, and Booking Wizard.
+ */
+
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';

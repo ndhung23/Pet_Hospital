@@ -1,3 +1,12 @@
+/**
+ * File: appointment.routes.js
+ * Module: Appointment Route Definitions (UC-BOOK-01, 03, 04, 05)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Express routes connecting appointment HTTP endpoints to AppointmentController methods.
+ */
+
 const express = require('express');
 const appointmentController = require('../controllers/AppointmentController');
 const authenticate = require('../middlewares/authenticate');

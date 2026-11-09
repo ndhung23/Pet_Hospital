@@ -1,3 +1,12 @@
+/**
+ * File: PetRepository.js
+ * Module: Pet Data Access (Repository Pattern)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Sole database access layer for Pet entity CRUD operations via Prisma ORM.
+ */
+
 const prisma = require('../config/prisma');
 
 class PetRepository {

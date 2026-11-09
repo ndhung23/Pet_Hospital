@@ -1,3 +1,12 @@
+/**
+ * File: pet.routes.js
+ * Module: Pet Route Definitions (UC-PET-01, 02, 03, 04)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Express routes connecting pet profile HTTP endpoints to PetController methods.
+ */
+
 const express = require('express');
 const petController = require('../controllers/PetController');
 const authenticate = require('../middlewares/authenticate');

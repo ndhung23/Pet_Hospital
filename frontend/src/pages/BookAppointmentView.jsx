@@ -1,3 +1,12 @@
+/**
+ * File: BookAppointmentView.jsx
+ * Module: Book Appointment Online View (UC-BOOK-01)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: React 5-step wizard for booking appointments online with doctor & slot selection and exception handling.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import petService from '../services/petService';

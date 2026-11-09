@@ -1,3 +1,12 @@
+/**
+ * File: PetController.js
+ * Module: Pet Profile Management (UC-PET-01, UC-PET-02, UC-PET-03, UC-PET-04)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Controller handling HTTP requests and responses for pet profile CRUD operations.
+ */
+
 const petService = require('../services/PetService');
 
 class PetController {

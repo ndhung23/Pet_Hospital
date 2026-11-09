@@ -1,3 +1,12 @@
+/**
+ * File: EmailService.js
+ * Module: Email Notification Stub (Secondary Actor for UC-BOOK-01)
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Asynchronous fire-and-forget notification stub to log queued appointment confirmation emails.
+ */
+
 class EmailService {
   /**
    * Queue confirmation email (stub)

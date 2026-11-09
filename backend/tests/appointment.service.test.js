@@ -1,3 +1,12 @@
+/**
+ * File: appointment.service.test.js
+ * Module: AppointmentService Unit Tests
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Jest automated tests verifying UC-BOOK-01, 03, 04, 05 and business rule exceptions (BR-02, BR-06).
+ */
+
 const appointmentService = require('../src/services/AppointmentService');
 const appointmentRepository = require('../src/repositories/AppointmentRepository');
 const emailService = require('../src/services/EmailService');

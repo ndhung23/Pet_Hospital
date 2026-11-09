@@ -1,3 +1,12 @@
+/**
+ * File: AppError.js
+ * Module: Operational Application Error Class
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Custom Error class supporting status code, operational flag, error code, and detailed field validations.
+ */
+
 class AppError extends Error {
   constructor(message, statusCode, details = null, code = null) {
     super(message);

@@ -1,3 +1,12 @@
+/**
+ * File: index.js
+ * Module: Centralized API Route Registry
+ * Author: he194418-NhacTuanAnh
+ * Date: 09/11/2026
+ * Version: 1.0.0
+ * Description: Aggregates and registers core sub-routes including appointments, pets, catalog, and schedule.
+ */
+
 const express = require('express');
 const authRoutes = require('./auth.routes');
 const profileRoutes = require('./profile.routes');
