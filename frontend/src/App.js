@@ -14,6 +14,7 @@ import Home from './pages/Home';
 // App Pages
 import Profile from './pages/Profile';
 import AiAdvisor from './pages/AiAdvisor';
+import MedicalRecordsPage from './pages/MedicalRecordsPage';
 import PetOwnerDashboard from './pages/dashboards/PetOwnerDashboard';
 import {
   ReceptionDashboard,
@@ -38,9 +39,10 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
 
-              {/* Protected Routes for All Authenticated Users (AUTH-04, AUTH-05) */}
+              {/* Protected Routes for All Authenticated Users (AUTH-04, AUTH-05, EMR-02, EMR-03) */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/records" element={<MedicalRecordsPage />} />
               </Route>
 
               {/* Role-Specific Protected Routes */}

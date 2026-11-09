@@ -53,7 +53,7 @@ async function main() {
   });
 
   // 3. Veterinarian
-  await prisma.user.upsert({
+  const vetUser = await prisma.user.upsert({
     where: { userName: 'vet1' },
     update: {},
     create: {
@@ -75,7 +75,7 @@ async function main() {
   });
 
   // 4. Nurse
-  await prisma.user.upsert({
+  const nurseUser = await prisma.user.upsert({
     where: { userName: 'nurse1' },
     update: {},
     create: {
@@ -123,11 +123,101 @@ async function main() {
                 medicalRecords: {
                   create: [
                     {
-                      diagnosis: 'Acute Gastroenteritis (Mild dehydration)',
-                      treatmentPlan: 'Hydration fluid 500ml, Probiotic paste, special gastrointestinal canned diet for 5 days',
+                      vetId: vetUser.id,
+                      weight: 28.5,
+                      temperature: 38.6,
+                      heartRate: 115,
+                      symptoms: 'Patient presented with 2-day history of vomiting and lethargy. Mild dehydration noted on physical examination.',
+                      diagnosis: 'K9-GE-01: Acute Canine Gastroenteritis',
+                      treatmentPlan: 'Subcutaneous fluid rehydration 500ml, probiotic paste twice daily, gastrointestinal bland diet for 5 days.',
+                      status: 'COMPLETED',
+                      prescriptions: {
+                        create: [
+                          {
+                            medicineName: 'Probiotic GI Support Paste',
+                            dosage: '3ml orally twice daily',
+                            quantity: 1,
+                            unit: 'tube',
+                            duration: '5 days',
+                            instructions: 'Administer with morning and evening food',
+                          },
+                          {
+                            medicineName: 'Maropitant (Cerenia) 24mg',
+                            dosage: '1 tablet once daily',
+                            quantity: 3,
+                            unit: 'tablet',
+                            duration: '3 days',
+                            instructions: 'Administer 1 hour before meal if nausea persists',
+                          },
+                        ],
+                      },
                     },
                   ],
                 },
+              },
+            ],
+          },
+        },
+      },
+    },
+    include: {
+      petOwner: {
+        include: {
+          pets: {
+            include: {
+              medicalRecords: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const createdPet = ownerUser.petOwner?.pets?.[0];
+  const createdRecord = createdPet?.medicalRecords?.[0];
+
+  if (createdPet && createdRecord) {
+    await prisma.labOrder.upsert({
+      where: { orderCode: 'LAB-2026-0001' },
+      update: {},
+      create: {
+        orderCode: 'LAB-2026-0001',
+        recordId: createdRecord.id,
+        petId: createdPet.id,
+        vetId: vetUser.id,
+        nurseId: nurseUser.id,
+        testType: 'Complete Blood Count (CBC)',
+        urgency: 'ROUTINE',
+        requestNote: 'Check for leukocytosis or hemoconcentration to evaluate systemic dehydration.',
+        status: 'COMPLETED',
+        resultValues: {
+          WBC: { value: 12.8, unit: '10^9/L', refRange: '6.0 - 17.0', flag: 'NORMAL' },
+          RBC: { value: 6.8, unit: '10^12/L', refRange: '5.5 - 8.5', flag: 'NORMAL' },
+          HGB: { value: 16.2, unit: 'g/dL', refRange: '12.0 - 18.0', flag: 'NORMAL' },
+          PLT: { value: 245, unit: '10^9/L', refRange: '200 - 500', flag: 'NORMAL' },
+        },
+        resultSummary: 'CBC within normal limits. Mild hemoconcentration secondary to subacute fluid loss. No active toxic change.',
+        sampleTakenAt: new Date(Date.now() - 3600 * 1000 * 24),
+        completedAt: new Date(Date.now() - 3600 * 1000 * 20),
+      },
+    });
+
+    // Also add a pending urgent lab order for testing LAB-02 queue!
+    await prisma.labOrder.upsert({
+      where: { orderCode: 'LAB-2026-0002' },
+      update: {},
+      create: {
+        orderCode: 'LAB-2026-0002',
+        recordId: createdRecord.id,
+        petId: createdPet.id,
+        vetId: vetUser.id,
+        testType: 'Digital X-Ray (Abdomen)',
+        urgency: 'URGENT',
+        requestNote: 'Rule out radiopaque foreign body obstruction. Urgent 2h SLA required.',
+        status: 'PENDING',
+      },
+    });
+  }
               },
             ],
           },

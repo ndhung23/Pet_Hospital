@@ -61,7 +61,9 @@ model User {
   processedAppointments  Appointment[]   @relation("ReceptionistAppointments")
   assignedAppointments   Appointment[]   @relation("VeterinarianAppointments")
   triageRecords          TriageRecord[]  @relation("ReceptionistTriageRecords")
-  examinedMedicalRecords MedicalRecord[] @relation("VeterinarianMedicalRecords")
+  conductedRecords       MedicalRecord[] @relation("VetMedicalRecords")
+  orderedLabOrders       LabOrder[]      @relation("VetLabOrders")
+  performedLabOrders     LabOrder[]      @relation("NurseLabOrders")
 
   @@map("users")
 }
@@ -135,6 +137,7 @@ model Pet {
 
   owner          PetOwner        @relation(fields: [ownerId], references: [userId], onDelete: Cascade)
   medicalRecords MedicalRecord[]
+  labOrders      LabOrder[]
   aiChatLogs     AIChatLog[]
   appointments   Appointment[]
 
@@ -143,29 +146,81 @@ model Pet {
 }
 
 model MedicalRecord {
-  id               String       @id @default(uuid()) @db.Uuid
-  petId            String       @db.Uuid
-  appId            String?      @unique @db.Uuid
-  vetId            String?      @db.Uuid
+  id               String         @id @default(uuid()) @db.Uuid
+  petId            String         @db.Uuid
+  appId            String?        @unique @db.Uuid
+  vetId            String?        @db.Uuid
   weight           Float?
   temperature      Float?
   heartRate        Int?
-  clinicalFindings String?      @db.Text
-  diagnosis        String       @db.Text
-  treatmentPlan    String       @db.Text
-  isLocked         Boolean      @default(false)
+  symptoms         String?        @db.Text
+  clinicalFindings String?        @db.Text
+  diagnosis        String         @db.Text
+  treatmentPlan    String         @db.Text
+  status           String         @default("COMPLETED") @db.VarChar(50)
+  isLocked         Boolean        @default(false)
   lockedAt         DateTime?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  pet          Pet          @relation(fields: [petId], references: [id], onDelete: Cascade)
-  appointment  Appointment? @relation(fields: [appId], references: [id], onDelete: SetNull)
-  veterinarian User?        @relation("VeterinarianMedicalRecords", fields: [vetId], references: [id], onDelete: SetNull)
+  pet           Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  appointment   Appointment?   @relation(fields: [appId], references: [id], onDelete: SetNull)
+  vet           User?          @relation("VetMedicalRecords", fields: [vetId], references: [id], onDelete: SetNull)
+  labOrders     LabOrder[]
+  prescriptions Prescription[]
 
   @@index([petId])
   @@index([appId])
   @@index([vetId])
   @@map("medical_records")
+}
+
+model LabOrder {
+  id             String    @id @default(uuid()) @db.Uuid
+  orderCode      String    @unique @db.VarChar(50)
+  recordId       String    @db.Uuid
+  petId          String    @db.Uuid
+  vetId          String?   @db.Uuid
+  nurseId        String?   @db.Uuid
+  testType       String    @db.VarChar(100)
+  urgency        String    @default("ROUTINE") @db.VarChar(20)
+  requestNote    String?   @db.Text
+  status         String    @default("PENDING") @db.VarChar(30)
+  resultValues   Json?
+  resultSummary  String?   @db.Text
+  resultImageUrl String?   @db.Text
+  sampleTakenAt  DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  medicalRecord  MedicalRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  pet            Pet           @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vet            User?         @relation("VetLabOrders", fields: [vetId], references: [id], onDelete: SetNull)
+  nurse          User?         @relation("NurseLabOrders", fields: [nurseId], references: [id], onDelete: SetNull)
+
+  @@index([recordId])
+  @@index([petId])
+  @@index([status, urgency])
+  @@map("lab_orders")
+}
+
+model Prescription {
+  id           String   @id @default(uuid()) @db.Uuid
+  recordId     String   @db.Uuid
+  medicineName String   @db.VarChar(150)
+  dosage       String   @db.VarChar(100)
+  quantity     Int      @default(1)
+  unit         String?  @db.VarChar(50)
+  duration     String?  @db.VarChar(50)
+  instructions String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  medicalRecord MedicalRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  @@index([recordId])
+  @@map("prescriptions")
 }
 
 model AIChatLog {
@@ -195,10 +250,10 @@ model Appointment {
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  pet          Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
-  receptionist User           @relation("ReceptionistAppointments", fields: [recepId], references: [id], onDelete: Restrict)
-  veterinarian User?          @relation("VeterinarianAppointments", fields: [vetId], references: [id], onDelete: SetNull)
-  triageRecord TriageRecord?
+  pet           Pet            @relation(fields: [petId], references: [id], onDelete: Cascade)
+  receptionist  User           @relation("ReceptionistAppointments", fields: [recepId], references: [id], onDelete: Restrict)
+  veterinarian  User?          @relation("VeterinarianAppointments", fields: [vetId], references: [id], onDelete: SetNull)
+  triageRecord  TriageRecord?
   medicalRecord MedicalRecord?
 
   @@index([petId])
