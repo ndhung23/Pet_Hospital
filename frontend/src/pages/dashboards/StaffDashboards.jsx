@@ -16,7 +16,6 @@ import {
   Activity,
   CheckCircle2,
   Stethoscope,
-  FlaskConical,
   CalendarCheck,
   CreditCard,
   ChevronRight,
@@ -354,52 +353,6 @@ export const ReceptionDashboard = () => {
   );
 };
 
-export const VetDashboard = () => {
-  const { user } = useAuth();
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <Stethoscope className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Veterinarian Examination Room</h1>
-            <p className="text-sm text-slate-500">
-              Logged in as {user?.fullName} ({user?.role})
-            </p>
-          </div>
-        </div>
-        <div className="mt-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span>Clinical examination & EMR encounter management workspace ready.</span>
-        </div>
-      </div>
-    </div>
-  );
-};
+export { VetDashboard } from './VetDashboard';
+export { LabDashboard } from './LabDashboard';
 
-export const LabDashboard = () => {
-  const { user } = useAuth();
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <FlaskConical className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Inpatient & Laboratory Queue</h1>
-            <p className="text-sm text-slate-500">
-              Logged in as {user?.fullName} ({user?.role})
-            </p>
-          </div>
-        </div>
-        <div className="mt-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl text-sm text-indigo-800 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-          <span>Paraclinical lab orders & inpatient nursing care queue.</span>
-        </div>
-      </div>
-    </div>
-  );
-};

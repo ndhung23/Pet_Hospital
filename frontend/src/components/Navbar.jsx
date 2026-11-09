@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   User,
+  FileText,
 } from 'lucide-react';
 
 const Navbar = () => {
@@ -64,10 +65,16 @@ const Navbar = () => {
                   <span>Dashboard</span>
                 </Link>
                 {role === 'PET_OWNER' && (
-                  <Link to="/ai-advisor" className={navItemClass('/ai-advisor')}>
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
-                    <span>AI Health Guide</span>
-                  </Link>
+                  <>
+                    <Link to="/records" className={navItemClass('/records')}>
+                      <FileText className="w-4 h-4 text-emerald-600" />
+                      <span>Hồ sơ bệnh án</span>
+                    </Link>
+                    <Link to="/ai-advisor" className={navItemClass('/ai-advisor')}>
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      <span>AI Health Guide</span>
+                    </Link>
+                  </>
                 )}
               </div>
             )}

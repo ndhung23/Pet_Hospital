@@ -1,8 +1,21 @@
 const { PrismaClient } = require('@prisma/client');
 const env = require('./env');
+const prismaFallback = require('./prismaFallback');
 
-const prisma = new PrismaClient({
-  log: env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-});
+let prismaInstance;
 
-module.exports = prisma;
+if (!env.DATABASE_URL) {
+  console.log('[Database] No DATABASE_URL specified. Running with in-memory development mock database.');
+  prismaInstance = prismaFallback;
+} else {
+  try {
+    prismaInstance = new PrismaClient({
+      log: env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
+    });
+  } catch (err) {
+    console.warn('[Database] Prisma initialization error, falling back to mock database:', err.message);
+    prismaInstance = prismaFallback;
+  }
+}
+
+module.exports = prismaInstance;

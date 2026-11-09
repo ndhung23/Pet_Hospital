@@ -2,6 +2,8 @@ const express = require('express');
 const authRoutes = require('./auth.routes');
 const profileRoutes = require('./profile.routes');
 const aiRoutes = require('./ai.routes');
+const emrRoutes = require('./emr.routes');
+const labRoutes = require('./lab.routes');
 
 const router = express.Router();
 
@@ -17,5 +19,7 @@ router.get('/health', (req, res) => {
 router.use('/auth', authRoutes);
 router.use('/profile', profileRoutes);
 router.use('/ai', aiRoutes);
+router.use('/emr', emrRoutes);
+router.use('/lab', labRoutes);
 
 module.exports = router;
