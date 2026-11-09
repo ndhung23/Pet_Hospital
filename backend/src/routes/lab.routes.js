@@ -1,3 +1,4 @@
+﻿// MSSV:HE191405-Họ và tên: Nguyễn Hoàng Nam
 const express = require('express');
 const labController = require('../controllers/lab.controller');
 const authenticate = require('../middlewares/authenticate');
